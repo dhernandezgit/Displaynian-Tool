@@ -1,0 +1,366 @@
+from __future__ import annotations
+
+import math
+from typing import Any
+
+from shapely import affinity
+from shapely.geometry import MultiPolygon, Polygon
+from shapely.ops import unary_union
+
+from .mesh import rounded_rect
+
+
+def _slot_width(settings: dict[str, Any], thickness: float) -> float:
+    return max(0.8, thickness + settings["fingerClearance"] - 2.0 * settings["kerf"])
+
+
+def _tab_width(settings: dict[str, Any]) -> float:
+    return max(2.0, settings["fingerWidth"])
+
+
+def _rect(x: float, y: float, w: float, h: float, r: float = 0.0) -> Polygon:
+    return affinity.translate(rounded_rect(w, h, r), xoff=x, yoff=y)
+
+
+def _slot(cx: float, cy: float, w: float, h: float) -> Polygon:
+    return _rect(cx - w / 2.0, cy - h / 2.0, w, h, min(w, h) * 0.2)
+
+
+def _skadis_slots(width: float, height: float, margin: float = 12.0) -> list[Polygon]:
+    holes: list[Polygon] = []
+    pitch = 40.0
+    cols = max(1, int((width - 2 * margin) / pitch) + 1)
+    rows = max(1, int((height - 2 * margin) / pitch) + 1)
+    start_x = (width - (cols - 1) * pitch) / 2.0
+    start_y = (height - (rows - 1) * pitch) / 2.0
+    for row in range(rows):
+        shift = 20.0 if row % 2 else 0.0
+        for col in range(cols):
+            x = start_x + col * pitch + shift
+            y = start_y + row * pitch
+            if margin <= x <= width - margin and margin <= y <= height - margin:
+                holes.append(_slot(x, y, 5.0, 15.0))
+    return holes
+
+
+def _honeycomb(width: float, height: float, radius: float = 4.2) -> list[Polygon]:
+    holes: list[Polygon] = []
+    dx = radius * math.sqrt(3)
+    dy = radius * 1.5
+    row = 0
+    y = radius + 4
+    while y < height - 4:
+        x = radius + 4 + (dx / 2 if row % 2 else 0)
+        while x < width - 4:
+            points = [
+                (x + radius * math.cos(math.radians(60 * i + 30)), y + radius * math.sin(math.radians(60 * i + 30)))
+                for i in range(6)
+            ]
+            holes.append(Polygon(points))
+            x += dx
+        y += dy
+        row += 1
+    return holes
+
+
+def _dogbones(poly: Polygon, radius: float) -> Polygon:
+    if radius <= 0.05:
+        return poly
+    out = poly
+    for interior in poly.interiors:
+        for x, y in list(interior.coords)[:-1]:
+            out = out.union(PointBuffer(x, y, radius))
+    return out
+
+
+def PointBuffer(x: float, y: float, radius: float) -> Polygon:
+    points = [
+        (x + radius * math.cos(math.radians(a)), y + radius * math.sin(math.radians(a)))
+        for a in range(0, 360, 18)
+    ]
+    return Polygon(points)
+
+
+def _apply_holes(poly: Polygon, holes: list[Polygon]) -> Polygon:
+    inside = [hole for hole in holes if not hole.is_empty and poly.contains(hole)]
+    if not inside:
+        return poly
+    return poly.difference(unary_union(inside))
+
+
+def _panel_parts(settings: dict[str, Any]) -> list[dict[str, Any]]:
+    width = settings["width"]
+    depth = settings["depth"]
+    side = settings["sideThickness"]
+    t = settings["laserThickness"]
+    panel_t = settings["panelThickness"]
+    back_h = settings["backHeight"]
+    levels = [level for level in settings["levelConfigs"] if level["enabled"]]
+    top_h = max((level["height"] for level in levels), default=200.0) + 40.0
+    parts: list[dict[str, Any]] = []
+
+    base = rounded_rect(width, depth, settings["baseRadius"])
+    base_holes: list[Polygon] = []
+    if settings["strapSlots"]:
+        for x in (width * 0.18, width * 0.82):
+            for y in (8.0, depth - 14.0):
+                base_holes.append(_rect(x - 11.0, y, 22.0, 6.0, 2.0))
+    if settings["ballast"]:
+        base_holes.append(_rect(width * 0.28, depth * 0.36, width * 0.44, depth * 0.28, 8.0))
+    base = _apply_holes(base, base_holes)
+    parts.append({"id": "laser-base", "name": "Base", "layer": "cut", "polygons": [base]})
+
+    side_profile = Polygon(
+        [
+            (0.0, 0.0),
+            (depth, 0.0),
+            (depth, top_h),
+            (depth - 20.0, top_h),
+            (depth - 20.0, 24.0),
+            (18.0, 24.0),
+            (18.0, top_h),
+            (0.0, top_h),
+        ]
+    )
+    side_holes: list[Polygon] = []
+    for level in levels:
+        slot_h = _slot_width(settings, settings["shelfThickness"])
+        yy = min(depth - panel_t - 8.0, level["depth"])
+        side_holes.append(_rect(8.0, level["height"] - slot_h / 2.0, yy, slot_h, 1.5))
+    side_profile = _apply_holes(side_profile, side_holes)
+    side_profile = _dogbones(side_profile, settings["dogbone"] * 0.35)
+    parts.append({"id": "laser-side-a", "name": "Lateral A", "layer": "cut", "polygons": [side_profile]})
+    parts.append({"id": "laser-side-b", "name": "Lateral B", "layer": "cut", "polygons": [affinity.scale(side_profile, xfact=-1, yfact=1, origin=(depth / 2, 0))]})
+
+    back_poly = rounded_rect(width - 2 * side, back_h, 3.0)
+    back_holes: list[Polygon] = []
+    if settings["backPanel"] == "skadis":
+        back_holes = _skadis_slots(width - 2 * side, back_h)
+    elif settings["backPanel"] == "honeycomb":
+        back_holes = _honeycomb(width - 2 * side, back_h)
+    back_poly = _apply_holes(back_poly, back_holes)
+    parts.append({"id": "laser-back", "name": "Panel trasero", "layer": "cut", "polygons": [back_poly]})
+
+    for index, level in enumerate(levels):
+        shelf_w = width
+        shelf_d = level["depth"]
+        shelf = rounded_rect(shelf_w, shelf_d, 3.0)
+        shelf_holes: list[Polygon] = []
+        if level["type"] == "pegboard":
+            shelf_holes = _skadis_slots(shelf_w, shelf_d, margin=8.0)
+        elif level["type"] == "rail":
+            shelf_holes.append(_rect(shelf_w * 0.12, shelf_d * 0.3, shelf_w * 0.76, 5.0, 2.0))
+        shelf = _apply_holes(shelf, shelf_holes)
+        parts.append({"id": f"laser-shelf-{index + 1}", "name": level["name"], "layer": "cut", "polygons": [shelf]})
+        if level["lip"] and level["lipHeight"] > 0:
+            lip_h = level["lipHeight"]
+            lip = _rect(0.0, 0.0, width, lip_h, 2.0)
+            lip_holes = []
+            tab_w = _tab_width(settings)
+            gap = (width - tab_w * 4.0) / 5.0
+            for tab_index in range(4):
+                x = gap + tab_index * (tab_w + gap)
+                lip_holes.append(_rect(x, 0.0, tab_w, 3.5, 1.0))
+            lip = _apply_holes(lip, lip_holes)
+            parts.append({"id": f"laser-lip-{index + 1}", "name": f"Labio {index + 1}", "layer": "cut", "polygons": [lip]})
+
+    if settings["cornerBrackets"]:
+        leg = settings["cornerLeg"]
+        thick = max(2.0, side * 0.75)
+        fl = Polygon([(0, 0), (leg, 0), (leg, thick), (thick, thick), (thick, leg), (0, leg)])
+        fl = _apply_holes(fl, [_slot(leg * 0.62, thick / 2.0, 6.0, 3.0)])
+        for index in range(4):
+            pieces = [affinity.rotate(fl, index * 90, origin=(0, 0))]
+            parts.append({"id": f"laser-corner-{index + 1}", "name": f"Escuadra {index + 1}", "layer": "cut", "polygons": pieces})
+
+    if settings["panelJoiners"]:
+        joiner = _rect(0, 0, 34.0, 26.0, 5.0)
+        joiner = _apply_holes(joiner, [_slot(12.0, 13.0, 6.0, 3.0), _slot(22.0, 13.0, 6.0, 3.0)])
+        parts.append({"id": "laser-panel-joiner", "name": "Unión de panel", "layer": "cut", "polygons": [joiner]})
+
+    if settings["transport"] and settings["transportLid"]:
+        lid_w = width
+        lid_d = depth
+        rim = 34.0
+        lid_top = _rect(0, 0, lid_w, lid_d, 4.0)
+        lid_top = _apply_holes(lid_top, _skadis_slots(lid_w * 0.8, lid_d * 0.3, margin=4.0) if False else [])
+        parts.append({"id": "laser-lid-top", "name": "Tapa de transporte", "layer": "cut", "polygons": [lid_top]})
+        strips = [
+            ("laser-lid-front", _rect(0, 0, lid_w, rim)),
+            ("laser-lid-back", _rect(0, 0, lid_w, rim)),
+            ("laser-lid-left", _rect(0, 0, lid_d, rim)),
+            ("laser-lid-right", _rect(0, 0, lid_d, rim)),
+        ]
+        for part_id, poly in strips:
+            parts.append({"id": part_id, "name": part_id.replace("-", " ").title(), "layer": "cut", "polygons": [poly]})
+
+    if settings["livingHinge"]:
+        hinge_h = max(18.0, settings["hingeRows"] * settings["hingeRowSpacing"] + 10.0)
+        strip = _rect(0, 0, width - 2 * side, hinge_h, 2.0)
+        slots: list[Polygon] = []
+        row_count = settings["hingeRows"]
+        slot_len = settings["hingeSlot"]
+        bridge = settings["hingeBridge"]
+        row_step = settings["hingeRowSpacing"]
+        for row in range(row_count):
+            y = 5.0 + row * row_step
+            x = (row % 2) * (slot_len + bridge) / 2.0
+            while x < strip.bounds[2] - slot_len:
+                slots.append(_rect(x, y, slot_len, max(0.35, 0.35), 0.15))
+                x += slot_len + bridge
+        strip = _apply_holes(strip, [slot for slot in slots if strip.contains(slot)])
+        parts.append({"id": "laser-living-hinge", "name": "Bisagra viva", "layer": "cut", "polygons": [strip]})
+
+    return parts
+
+
+def _prepare_polygon(poly: Polygon) -> Polygon:
+    if poly.is_empty:
+        return poly
+    if poly.geom_type == "MultiPolygon":
+        pieces = [p for p in poly.geoms if not p.is_empty]
+        return unary_union(pieces)
+    return poly
+
+
+def _bounds(poly: Polygon) -> tuple[float, float, float, float]:
+    min_x, min_y, max_x, max_y = poly.bounds
+    return max_x - min_x, max_y - min_y, min_x, min_y
+
+
+def _rotate_to_fit(poly: Polygon, max_w: float, max_h: float) -> Polygon:
+    w, h, _, _ = _bounds(poly)
+    if (w > max_w or h > max_h) and (h <= max_w and w <= max_h):
+        return affinity.rotate(poly, 90, origin="center")
+    return poly
+
+
+class _Sheet:
+    def __init__(self, width: float, height: float) -> None:
+        self.width = width
+        self.height = height
+        self.margin = 6.0
+        self.gap = 6.0
+        self.cursor_x = self.margin
+        self.cursor_y = self.margin
+        self.row_h = 0.0
+        self.parts: list[dict[str, Any]] = []
+
+    def place(self, poly: Polygon, part: dict[str, Any]) -> Polygon | None:
+        w, h, _, _ = _bounds(poly)
+        if w > self.width - 2 * self.margin or h > self.height - 2 * self.margin:
+            return None
+        if self.cursor_x + w > self.width - self.margin:
+            self.cursor_x = self.margin
+            self.cursor_y += self.row_h + self.gap
+            self.row_h = 0.0
+        if self.cursor_y + h > self.height - self.margin:
+            return None
+        min_x, min_y, _, _ = poly.bounds
+        placed = affinity.translate(poly, xoff=self.cursor_x - min_x, yoff=self.cursor_y - min_y)
+        self.parts.append({**part, "polygons": [placed], "sheet_x": self.cursor_x, "sheet_y": self.cursor_y})
+        self.cursor_x += w + self.gap
+        self.row_h = max(self.row_h, h)
+        return placed
+
+
+def _svg(sheets: list[_Sheet]) -> list[dict[str, Any]]:
+    colors = {"cut": "#cf3e4d", "score": "#2e6fa8", "engrave": "#4b4b4b"}
+    out: list[dict[str, Any]] = []
+    for sheet_index, sheet in enumerate(sheets, start=1):
+        lines = [
+            f'<svg xmlns="http://www.w3.org/2000/svg" width="{sheet.width:.2f}mm" height="{sheet.height:.2f}mm" viewBox="0 0 {sheet.width:.2f} {sheet.height:.2f}">',
+            f'<rect width="{sheet.width:.2f}" height="{sheet.height:.2f}" fill="#fdfaf3"/>',
+            '<g fill="none" stroke-width="0.34" stroke-linecap="round" stroke-linejoin="round">',
+        ]
+        for layer in ("engrave", "score", "cut"):
+            group = [part for part in sheet.parts if part["layer"] == layer]
+            if not group:
+                continue
+            lines.append(f'<g id="{layer}" stroke="{colors[layer]}">')
+            for part in group:
+                for poly in part["polygons"]:
+                    rings = [poly.exterior] + list(poly.interiors)
+                    for ring in rings:
+                        coords = list(ring.coords)
+                        path = "M " + " L ".join(f"{x:.3f} {sheet.height - y:.3f}" for x, y in coords) + " Z"
+                        lines.append(f'<path d="{path}" fill="{colors[layer]}" fill-opacity="0.045" fill-rule="evenodd"/>')
+            lines.append("</g>")
+        lines.append("</g>")
+        for part in sheet.parts:
+            x = part["sheet_x"] + 2.0
+            y = sheet.height - part["sheet_y"] - 4.0
+            lines.append(f'<text x="{x:.2f}" y="{y:.2f}" font-family="sans-serif" font-size="5.5" fill="#8f8577">{part["name"]}</text>')
+        lines.append("</svg>")
+        out.append(
+            {
+                "index": sheet_index,
+                "width": sheet.width,
+                "height": sheet.height,
+                "svg": "\n".join(lines),
+                "parts": [part["name"] for part in sheet.parts],
+            }
+        )
+    return out
+
+
+def _dxf(sheet: _Sheet) -> str:
+    colors = {"cut": 1, "score": 5, "engrave": 8}
+    lines = ["0", "SECTION", "2", "HEADER", "9", "$ACADVER", "1", "AC1009", "0", "ENDSEC", "0", "SECTION", "2", "ENTITIES"]
+    for part in sheet.parts:
+        layer = part["layer"]
+        for poly in part["polygons"]:
+            for ring in [poly.exterior] + list(poly.interiors):
+                coords = list(ring.coords)
+                lines.extend(["0", "POLYLINE", "8", layer.upper(), "62", str(colors[layer]), "66", "1", "70", "1"])
+                for x, y in coords:
+                    lines.extend(["0", "VERTEX", "8", layer.upper(), "10", f"{x:.4f}", "20", f"{y:.4f}", "30", "0.0"])
+                lines.extend(["0", "SEQEND"])
+    lines.extend(["0", "ENDSEC", "0", "EOF"])
+    return "\n".join(lines)
+
+
+def build_laser(settings: dict[str, Any], preview_parts: list[dict[str, Any]]) -> dict[str, Any]:
+    raw = _panel_parts(settings)
+    max_w = settings["sheetWidth"]
+    max_h = settings["sheetHeight"]
+    sheets: list[_Sheet] = []
+    overflow: list[str] = []
+    ordered = sorted(raw, key=lambda item: max(_bounds(poly)[1] for poly in item["polygons"]), reverse=True)
+    for part in ordered:
+        polygons = [poly for poly in (_prepare_polygon(poly) for poly in part["polygons"]) if not poly.is_empty]
+        split_polys: list[Polygon] = []
+        for poly in polygons:
+            if isinstance(poly, MultiPolygon):
+                split_polys.extend(poly.geoms)
+            else:
+                split_polys.append(poly)
+        for poly in split_polys:
+            rotated = _rotate_to_fit(poly, max_w - 12.0, max_h - 12.0)
+            placed = False
+            for sheet in sheets:
+                if sheet.place(rotated, part) is not None:
+                    placed = True
+                    break
+            if not placed:
+                sheet = _Sheet(max_w, max_h)
+                if sheet.place(rotated, part) is not None:
+                    sheets.append(sheet)
+                else:
+                    overflow.append(part["name"])
+                    if not sheets:
+                        sheets.append(_Sheet(max_w, max_h))
+    if not sheets:
+        sheets = [_Sheet(max_w, max_h)]
+    svg_sheets = _svg(sheets)
+    for index, sheet in enumerate(sheets):
+        svg_sheets[index]["dxf"] = _dxf(sheet)
+    return {
+        "sheets": svg_sheets,
+        "part_count": len(raw),
+        "overflow": overflow,
+        "thickness": settings["laserThickness"],
+        "kerf": settings["kerf"],
+        "livingHinge": settings["livingHinge"],
+        "printedKit": settings["includePrintedKit"],
+    }
