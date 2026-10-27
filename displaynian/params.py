@@ -10,7 +10,7 @@ SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
         "description": "Bandejas finas con compartimentos, enlaces plegables y panel SKÅDIS.",
         "width": 170.0,
         "depth": 160.0,
-        "levels": 4,
+        "levels": 3,
         "levelSpacing": 50.0,
         "shelfDepth": 140.0,
         "backPanel": "none",
@@ -25,7 +25,7 @@ SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
         "description": "Bandejas amplias y poco profundas para producto plano.",
         "width": 170.0,
         "depth": 160.0,
-        "levels": 4,
+        "levels": 3,
         "levelSpacing": 50.0,
         "shelfDepth": 146.0,
         "backPanel": "none",
@@ -40,7 +40,7 @@ SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
         "description": "Bandejas con insertos de anillos, pendientes, pulseras y collares.",
         "width": 170.0,
         "depth": 160.0,
-        "levels": 4,
+        "levels": 3,
         "levelSpacing": 50.0,
         "shelfDepth": 140.0,
         "backPanel": "none",
@@ -100,7 +100,7 @@ SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
         "description": "Combina bandejas, insertos, panel y ganchos.",
         "width": 170.0,
         "depth": 160.0,
-        "levels": 4,
+        "levels": 3,
         "levelSpacing": 50.0,
         "shelfDepth": 140.0,
         "backPanel": "none",
@@ -171,7 +171,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "system": "keychain",
     "width": 170.0,
     "depth": 160.0,
-    "levels": 4,
+    "levels": 3,
     "levelSpacing": 50.0,
     "shelfDepth": 140.0,
     "shelfTaper": 1.0,
@@ -185,11 +185,12 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "postDepth": 30.0,
     "panelThickness": 3.0,
     "shelfThickness": 2.4,
-    "lipHeight": 34.0,
+    "lipHeight": 16.0,
     "lipThickness": 2.4,
     "dividerSpacing": 32.0,
     "dividerThickness": 1.6,
     "trayRadius": 3.0,
+    "trayTilt": 10.0,
     "frontLipRatio": 0.72,
     "pinDiameter": 4.2,
     "lidHeight": 38.0,
@@ -238,10 +239,10 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "disabledParts": [],
     "partColors": {},
     "partScales": {},
-    "printer": "a1mini",
-    "bedWidth": 180.0,
-    "bedDepth": 180.0,
-    "bedHeight": 180.0,
+    "printer": "a1",
+    "bedWidth": 256.0,
+    "bedDepth": 256.0,
+    "bedHeight": 256.0,
     "nozzle": 0.4,
     "layerHeight": 0.2,
     "walls": 3,
@@ -363,11 +364,12 @@ def normalize_settings(raw: dict[str, Any] | None) -> dict[str, Any]:
     settings["postDepth"] = _number(settings.get("postDepth"), 30.0, 8.0, 80.0)
     settings["panelThickness"] = _number(settings.get("panelThickness"), 3.0, 1.5, 20.0)
     settings["shelfThickness"] = _number(settings.get("shelfThickness"), 2.4, 1.2, 20.0)
-    settings["lipHeight"] = _number(settings.get("lipHeight"), 34.0, 12.0, 100.0)
+    settings["lipHeight"] = _number(settings.get("lipHeight"), 16.0, 8.0, 60.0)
     settings["lipThickness"] = _number(settings.get("lipThickness"), 2.4, 1.0, 12.0)
     settings["dividerSpacing"] = _number(settings.get("dividerSpacing"), 32.0, 18.0, 120.0)
     settings["dividerThickness"] = _number(settings.get("dividerThickness"), 1.6, 0.8, 6.0)
     settings["trayRadius"] = _number(settings.get("trayRadius"), 3.0, 0.0, 20.0)
+    settings["trayTilt"] = _number(settings.get("trayTilt"), 10.0, 0.0, 30.0)
     settings["frontLipRatio"] = _number(settings.get("frontLipRatio"), 0.72, 0.3, 1.0)
     settings["pinDiameter"] = _number(settings.get("pinDiameter"), 4.2, 2.0, 10.0)
     settings["lidHeight"] = _number(settings.get("lidHeight"), 38.0, 16.0, 160.0)

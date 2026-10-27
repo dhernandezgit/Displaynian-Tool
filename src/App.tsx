@@ -40,7 +40,7 @@ import HelpDialog from "./components/HelpDialog";
 import StatusBar from "./components/StatusBar";
 import Logo from "./components/Logo";
 
-const SETTINGS_KEY = "displaynian-settings-v3";
+const SETTINGS_KEY = "displaynian-settings-v4";
 const THEME_KEY = "displaynian-theme";
 const PROJECT_NAME_KEY = "displaynian-project-name";
 
@@ -436,8 +436,8 @@ export default function App() {
             {!showSheets ? (
               <>
                 <div className="view-modes">
-                  <button type="button" className={viewMode === "open" ? "is-active" : ""} onClick={() => setViewMode("open")} title="Abierto"><Box size={15} /> Desplegado</button>
-                  <button type="button" className={viewMode === "fold" ? "is-active" : ""} onClick={() => setViewMode("fold")} title="Plegado"><FoldHorizontal size={15} /> Plegado</button>
+                  <button type="button" className={viewMode === "open" ? "is-active" : ""} onClick={() => setViewMode("open")} title="Abierto"><Box size={15} /> Montado</button>
+                  <button type="button" className={viewMode === "fold" ? "is-active" : ""} onClick={() => setViewMode("fold")} title="Plegado"><FoldHorizontal size={15} /> Desmontado</button>
                   <button type="button" className={viewMode === "transport" ? "is-active" : ""} onClick={() => setViewMode("transport")} title="Transporte"><Luggage size={15} /> Transporte</button>
                   <button type="button" className={viewMode === "exploded" ? "is-active" : ""} onClick={() => setViewMode("exploded")} title="Despiece"><Expand size={15} /> Despiece</button>
                 </div>
@@ -454,20 +454,6 @@ export default function App() {
             ) : null}
           </div>
 
-          {!showSheets && viewMode === "fold" ? (
-            <div className="fold-strip">
-              <span>Desplegado ↔ Plegado</span>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={foldProgress}
-                onChange={(event) => setFoldProgress(Number(event.target.value))}
-              />
-              <b>{Math.round(foldProgress * 100)}%</b>
-            </div>
-          ) : null}
           {!showSheets && viewMode === "exploded" ? (
             <div className="fold-strip">
               <span>Separación</span>
@@ -521,11 +507,11 @@ export default function App() {
             {showSheets
               ? "Láser: SVG y DXF por hoja. Mide espesor y kerf antes de cortar."
               : viewMode === "open"
-                ? "Desplegado: bandejas separadas y enlaces en vertical."
+                ? "Montado: laterales en la base, bandejas en las ranuras y panel si está activo."
                 : viewMode === "fold"
-                  ? "Plegado: enlaces girados y bandejas apiladas; las uniones siguen montadas."
+                  ? "Desmontado: laterales y bandejas apilados en plano para guardar."
                   : viewMode === "transport"
-                    ? "Transporte: caja cerrada con asa. Las uniones quedan dentro."
+                    ? "Transporte: caja cerrada con todas las piezas dentro."
                     : "Despiece: piezas separadas para revisar el montaje."}
           </div>
         </section>

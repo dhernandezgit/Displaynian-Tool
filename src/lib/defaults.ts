@@ -4,79 +4,74 @@ export const SYSTEM_CARDS: SystemCard[] = [
   {
     id: "keychain",
     label: "Llaveros",
-    description: "Bandejas finas con compartimentos, enlaces y panel SKÅDIS.",
+    description: "Tres bandejas con contenedores extraíbles.",
     icon: "KeyRound",
     accent: "#d9694f",
-    defaults: { width: 170, depth: 160, levels: 4, levelSpacing: 50, shelfDepth: 140, lipHeight: 34, backPanel: "none", hooks: 0 },
+    defaults: { width: 170, depth: 160, levels: 3, levelSpacing: 50, shelfDepth: 140, lipHeight: 16, trayTilt: 10, backPanel: "none", hooks: 0 },
   },
   {
     id: "stickers",
     label: "Pegatinas y tarjetas",
-    description: "Bandejas amplias y poco profundas para producto plano.",
+    description: "Bandejas inclinadas y vacías para producto plano.",
     icon: "Sticker",
     accent: "#c58a3d",
-    defaults: { width: 170, depth: 160, levels: 4, levelSpacing: 50, shelfDepth: 146, lipHeight: 32, backPanel: "none", hooks: 0 },
+    defaults: { width: 180, depth: 140, levels: 3, levelSpacing: 60, shelfDepth: 110, lipHeight: 12, trayTilt: 15, backPanel: "none", hooks: 0 },
   },
   {
     id: "jewelry",
     label: "Joyería",
-    description: "Insertos de anillos, pendientes, pulseras y collares.",
+    description: "Insertos de anillos, pendientes y collares.",
     icon: "Gem",
     accent: "#a56cad",
-    defaults: { width: 170, depth: 160, levels: 4, levelSpacing: 50, shelfDepth: 140, lipHeight: 34, backPanel: "none", hooks: 0 },
+    defaults: { width: 170, depth: 150, levels: 3, levelSpacing: 50, shelfDepth: 120, lipHeight: 14, trayTilt: 8, backPanel: "none", hooks: 0 },
   },
   {
     id: "coasters",
     label: "Posavasos",
-    description: "Bandejas con raíles y topes para posavasos.",
+    description: "Bandejas con raíles para posavasos.",
     icon: "CircleDot",
     accent: "#4f8f83",
-    defaults: { width: 170, depth: 160, levels: 3, levelSpacing: 54, shelfDepth: 146, lipHeight: 30, backPanel: "none", hooks: 0 },
+    defaults: { width: 180, depth: 150, levels: 3, levelSpacing: 55, shelfDepth: 125, lipHeight: 12, trayTilt: 6, backPanel: "none", hooks: 0 },
   },
   {
     id: "bookmarks",
     label: "Marcapáginas",
-    description: "Bandejas con divisores de cuatro compartimentos.",
+    description: "Tres bandejas con cuatro divisores.",
     icon: "BookMarked",
     accent: "#5f7fa8",
-    defaults: { width: 170, depth: 160, levels: 4, levelSpacing: 48, shelfDepth: 138, lipHeight: 30, backPanel: "none", hooks: 0 },
+    defaults: { width: 170, depth: 150, levels: 3, levelSpacing: 48, shelfDepth: 120, lipHeight: 12, trayTilt: 12, backPanel: "none", hooks: 0 },
   },
   {
     id: "pens",
     label: "Bolígrafos",
-    description: "Bandejas con inserto de seis bolígrafos.",
+    description: "Tres bandejas con inserto de seis bolígrafos.",
     icon: "PenTool",
     accent: "#b3644f",
-    defaults: { width: 170, depth: 160, levels: 3, levelSpacing: 54, shelfDepth: 140, lipHeight: 34, backPanel: "none", hooks: 0 },
+    defaults: { width: 180, depth: 150, levels: 3, levelSpacing: 55, shelfDepth: 120, lipHeight: 14, trayTilt: 0, backPanel: "none", hooks: 0 },
   },
   {
     id: "mixed",
     label: "Sistema mixto",
-    description: "Combina bandejas, insertos, panel y ganchos.",
+    description: "Contenedores, divisores y bandejas inclinadas.",
     icon: "LayoutGrid",
     accent: "#6c7f88",
-    defaults: { width: 170, depth: 160, levels: 4, levelSpacing: 50, shelfDepth: 140, lipHeight: 34, backPanel: "none", hooks: 0 },
+    defaults: { width: 180, depth: 150, levels: 3, levelSpacing: 52, shelfDepth: 120, lipHeight: 12, trayTilt: 10, backPanel: "none", hooks: 0 },
   },
 ];
 
 export const CATALOG_GROUPS: { id: string; label: string; description: string }[] = [
-  { id: "estructura", label: "Estructura", description: "Base, enlaces, panel y uniones." },
-  { id: "accesorios", label: "Accesorios", description: "Ganchos, insertos y detalles." },
-  { id: "transporte", label: "Transporte", description: "Tapa, asa y plegado." },
+  { id: "estructura", label: "Estructura", description: "Pies y uniones del flat-pack." },
+  { id: "accesorios", label: "Accesorios", description: "Ganchos, cartel y contenedores." },
+  { id: "transporte", label: "Transporte", description: "Caja cerrada y asa." },
 ];
 
 export const CATALOG: CatalogItem[] = [
-  { key: "addBase", label: "Base", description: "Placa fina con patas.", group: "estructura", kind: "bool", icon: "Square" },
-  { key: "addRear", label: "Panel trasero", description: "Panel SKÅDIS, liso o panal.", group: "estructura", kind: "bool", icon: "PanelRight" },
-  { key: "addFront", label: "Enlaces de plegado", description: "Cuatro enlaces por nivel con pasadores.", group: "estructura", kind: "bool", icon: "Link2" },
-  { key: "panelJoiners", label: "Uniones de panel", description: "Refuerzan paneles partidos.", group: "estructura", kind: "bool", icon: "Link" },
   { key: "feet", label: "Pies", description: "Apoyos de la base.", group: "estructura", kind: "bool", icon: "Footprints" },
-  { key: "sign", label: "Cartel", description: "Placa con hueco para una etiqueta de papel.", group: "accesorios", kind: "bool", icon: "Signpost" },
+  { key: "sign", label: "Cartel", description: "Placa con hueco para etiqueta de papel.", group: "accesorios", kind: "bool", icon: "Signpost" },
   { key: "containerLids", label: "Tapas de contenedor", description: "Tapan los contenedores individuales.", group: "accesorios", kind: "bool", icon: "Package" },
-  { key: "hooks", label: "Ganchos", description: "Ganchos SKÅDIS o de rejilla.", group: "accesorios", kind: "count", defaultCount: 3, min: 0, max: 20, icon: "Anchor" },
-  { key: "transport", label: "Plegado", description: "Activa la vista y la tapa de transporte.", group: "transporte", kind: "bool", icon: "FoldHorizontal" },
-  { key: "transportLid", label: "Tapa", description: "Cubre la pila plegada.", group: "transporte", kind: "bool", icon: "Luggage" },
-  { key: "transportHandle", label: "Asa", description: "Hueco de asa en la tapa.", group: "transporte", kind: "bool", icon: "Hand" },
+  { key: "hooks", label: "Ganchos", description: "Ganchos SKÅDIS si activas panel.", group: "accesorios", kind: "count", defaultCount: 3, min: 0, max: 20, icon: "Anchor" },
+  { key: "transport", label: "Caja de transporte", description: "Caja cerrada para el flat-pack.", group: "transporte", kind: "bool", icon: "Luggage" },
+  { key: "transportHandle", label: "Asa", description: "Asa de la caja.", group: "transporte", kind: "bool", icon: "Hand" },
 ];
 
 export const INSERT_OPTIONS = [
@@ -178,7 +173,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   system: "keychain",
   width: 170,
   depth: 160,
-  levels: 4,
+  levels: 3,
   levelSpacing: 50,
   shelfDepth: 140,
   shelfTaper: 1,
@@ -192,11 +187,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
   postDepth: 30,
   panelThickness: 3,
   shelfThickness: 2.4,
-  lipHeight: 34,
+  lipHeight: 16,
   lipThickness: 2.4,
   dividerSpacing: 32,
   dividerThickness: 1.6,
   trayRadius: 3,
+  trayTilt: 10,
   frontLipRatio: 0.72,
   pinDiameter: 4.2,
   lidHeight: 38,
@@ -245,14 +241,18 @@ export const DEFAULT_SETTINGS: AppSettings = {
   awning: false,
   accessoryTray: false,
   insert: "none",
-  levelConfigs: makeLevels(4, 50, 140, 1, 34),
+  levelConfigs: makeLevels(3, 50, 140, 1, 34).map((level, index) => ({
+    ...level,
+    style: "containers",
+    containers: index === 2 ? 1 : 2,
+  })),
   disabledParts: [],
   partColors: {},
   partScales: {},
-  printer: "a1mini",
-  bedWidth: 180,
-  bedDepth: 180,
-  bedHeight: 180,
+  printer: "a1",
+  bedWidth: 256,
+  bedDepth: 256,
+  bedHeight: 256,
   nozzle: 0.4,
   layerHeight: 0.2,
   walls: 3,
@@ -279,23 +279,36 @@ export const DEFAULT_SETTINGS: AppSettings = {
   colors: { ...DEFAULT_COLORS },
 };
 
+const SYSTEM_LEVELS: Record<string, { style: string; containers: number; insert: string }[]> = {
+  keychain: [{ style: "containers", containers: 2, insert: "none" }, { style: "containers", containers: 2, insert: "none" }, { style: "containers", containers: 1, insert: "none" }],
+  stickers: [{ style: "empty", containers: 1, insert: "none" }, { style: "empty", containers: 1, insert: "none" }, { style: "empty", containers: 1, insert: "none" }],
+  jewelry: [{ style: "dividers", containers: 1, insert: "rings" }, { style: "dividers", containers: 1, insert: "earringCards" }, { style: "dividers", containers: 1, insert: "necklace" }],
+  coasters: [{ style: "dividers", containers: 1, insert: "coasterRail" }, { style: "dividers", containers: 1, insert: "coasterRail" }, { style: "dividers", containers: 1, insert: "coasterRail" }],
+  bookmarks: [{ style: "dividers", containers: 1, insert: "bookmark4" }, { style: "dividers", containers: 1, insert: "bookmark4" }, { style: "dividers", containers: 1, insert: "bookmark4" }],
+  pens: [{ style: "dividers", containers: 1, insert: "pen6" }, { style: "dividers", containers: 1, insert: "pen6" }, { style: "dividers", containers: 1, insert: "pen6" }],
+  mixed: [{ style: "containers", containers: 2, insert: "none" }, { style: "dividers", containers: 1, insert: "cardRail" }, { style: "containers", containers: 1, insert: "none" }],
+};
+
 export function applySystem(settings: AppSettings, system: string): AppSettings {
   const card = SYSTEM_CARDS.find((item) => item.id === system);
   if (!card) return settings;
-  const next: AppSettings = {
+  const count = Number(card.defaults.levels ?? settings.levels);
+  const baseLevels = makeLevels(
+    count,
+    Number(card.defaults.levelSpacing ?? settings.levelSpacing),
+    Number(card.defaults.shelfDepth ?? settings.shelfDepth),
+    settings.shelfTaper,
+    Number(card.defaults.lipHeight ?? settings.lipHeight),
+  );
+  const variants = SYSTEM_LEVELS[system] || [];
+  const levelConfigs = baseLevels.map((level, index) => ({ ...level, ...(variants[index] || {}) }));
+  return {
     ...settings,
     ...card.defaults,
     system,
-    levelConfigs: makeLevels(
-      Number(card.defaults.levels ?? settings.levels),
-      Number(card.defaults.levelSpacing ?? settings.levelSpacing),
-      Number(card.defaults.shelfDepth ?? settings.shelfDepth),
-      settings.shelfTaper,
-      Number(card.defaults.lipHeight ?? settings.lipHeight),
-    ),
+    levelConfigs,
     insert: "none",
   };
-  return next;
 }
 
 export function normalizeSettings(raw: Partial<AppSettings> | null | undefined): AppSettings {

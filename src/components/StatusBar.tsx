@@ -29,7 +29,7 @@ export default function StatusBar({
             <>
               <span>{build.parts.length} piezas</span>
               <span>{build.dimensions.width.toFixed(0)} × {build.dimensions.depth.toFixed(0)} × {build.dimensions.height.toFixed(0)} mm</span>
-              <span>plegado {(build.dimensions.foldedHeight / 10).toFixed(1)} cm</span>
+              <span>paquete {(build.dimensions.foldedHeight / 10).toFixed(1)} cm</span>
               <span>{build.material_grams >= 1000 ? `${(build.material_grams / 1000).toFixed(2)} kg` : `${build.material_grams.toFixed(0)} g`}</span>
             </>
           )}

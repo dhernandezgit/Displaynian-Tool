@@ -160,7 +160,7 @@ export default function PartInspector({
             <div className="summary-grid">
               <div><b>{build.parts.length}</b><span>piezas</span></div>
               <div><b>{build.dimensions.levels}</b><span>niveles</span></div>
-              <div><b>{(build.dimensions.foldedHeight / 10).toFixed(1)}</b><span>cm plegado</span></div>
+              <div><b>{(build.dimensions.foldedHeight / 10).toFixed(1)}</b><span>cm paquete</span></div>
               <div><b>{build.material_grams >= 1000 ? `${(build.material_grams / 1000).toFixed(1)} kg` : `${build.material_grams.toFixed(0)} g`}</b><span>material</span></div>
             </div>
           ) : null}

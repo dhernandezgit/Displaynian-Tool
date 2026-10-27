@@ -146,8 +146,8 @@ export const Viewport3D = forwardRef<Viewport3DHandle, Props>(function Viewport3
     const container = containerRef.current;
     if (!container) return;
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("#e8e2d6");
-    scene.fog = new THREE.Fog("#e8e2d6", 900, 2400);
+    scene.background = new THREE.Color("#f4e3ea");
+    scene.fog = new THREE.Fog("#f4e3ea", 900, 2400);
     sceneRef.current = scene;
 
     const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 6000);
@@ -190,7 +190,7 @@ export const Viewport3D = forwardRef<Viewport3DHandle, Props>(function Viewport3
 
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(6000, 6000),
-      new THREE.MeshStandardMaterial({ color: 0xefe9de, roughness: 0.96, metalness: 0 }),
+      new THREE.MeshStandardMaterial({ color: 0xf9ecf1, roughness: 0.96, metalness: 0 }),
     );
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = -0.35;
@@ -242,9 +242,9 @@ export const Viewport3D = forwardRef<Viewport3DHandle, Props>(function Viewport3
       const depth = settings?.depth ?? 220;
       const height = settings?.backHeight || (settings ? settings.baseHeight + settings.backHeight : 260);
       const extent = Math.max(width, depth, height, 120);
-      controls.target.set(width / 2, height * 0.46, -depth * 0.5);
+      controls.target.set(width / 2, height * 0.46, -depth * 0.45);
       const distance = extent * 1.75;
-      camera.position.set(width / 2 + distance * 0.72, height * 0.82 + extent * 0.32, -depth / 2 + distance * 0.82);
+      camera.position.set(width / 2 + distance * 0.3, height * 0.72 + extent * 0.24, -depth / 2 + distance * 1.0);
       controls.update();
     };
     fitRef.current = fit;
@@ -402,7 +402,7 @@ export const Viewport3D = forwardRef<Viewport3DHandle, Props>(function Viewport3
       else if (kind === "side") camera.position.set(target.x + distance, height * 0.52, target.z);
       else if (kind === "top") camera.position.set(target.x + 0.01, distance * 1.2, target.z + 0.01);
       else if (kind === "folded") camera.position.set(target.x + distance * 0.7, height * 0.3, target.z + distance * 0.68);
-      else camera.position.set(target.x + distance * 0.72, height * 0.82 + extent * 0.32, target.z + distance * 0.82);
+      else camera.position.set(target.x + distance * 0.3, height * 0.72 + extent * 0.24, target.z + distance * 1.0);
       controls.target.copy(target);
       controls.update();
     },

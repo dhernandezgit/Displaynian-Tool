@@ -1,6 +1,34 @@
 # Changelog
 
+## 0.5.0 — 2026-10-27
+
+Cambio a expositor flat-pack imprimible, basado en generadores paramétricos existentes.
+
+### 3D
+
+- Laterales con ranuras inclinadas y bandejas deslizantes, sin tornillos ni bisagras.
+- Base con ranuras, pies y caja de transporte cerrada.
+- Panel SKÅDIS opcional y apagado por defecto.
+- Contenedores individuales con tapas o insertos por nivel.
+- Separación independiente por nivel.
+- Presets que cambian de verdad la geometría (pegatinas, joyería, posavasos, marcapáginas, bolígrafos, mixto).
+- Formato compacto 170 × 160 mm; preset A1 Mini de 150 × 130 mm y 2 niveles.
+- Material y volumen corregidos.
+
+### Interfaz
+
+- Esquema de color rosa/lavanda como CalicoCutters y CryCat.
+- Vistas Montado, Desmontado, Transporte y Despiece.
+- Catálogo simplificado y sin piezas repetidas de enlaces/pasadores.
+- Ayuda y textos adaptados al flat-pack.
+
+### Calidad
+
+- 28 tests, typecheck y build.
+- Guardado local v4.
+
 ## 0.4.1 — 2026-10-27
+
 
 Ajuste fino del movimiento, la caja y el formato.
 

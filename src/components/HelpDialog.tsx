@@ -13,9 +13,10 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
           <h3>1. Elige el sistema</h3>
           <p>Llaveros, pegatinas, joyería, posavasos, marcapáginas, bolígrafos o mixto. Después ajusta ancho, fondo, niveles y panel. Todo es opcional: puedes desactivar cualquier pieza desde el catálogo o desde la lista de piezas.</p>
           <h3>2. Personaliza por partes</h3>
-          <p>Cada bandeja tiene su separación propia y puede usar separadores fijos, contenedores individuales o quedar vacía. Haz clic en una pieza del visor para cambiar color, escala o visibilidad. Los enlaces y pasadores son piezas reales y permanecen montados.</p>
+          <p>Cada bandeja tiene su separación y su contenido: contenedores individuales, separadores, insertos o bandeja vacía. Haz clic en una pieza del visor para cambiar color, escala o visibilidad.</p>
           <h3>3. Comprueba el montaje</h3>
-          <p><b>Desplegado</b>: bandejas separadas y enlaces en vertical. <b>Plegado</b>: enlaces girados y bandejas apiladas, sin caja; las uniones siguen ahí. <b>Transporte</b>: caja cerrada con asa que cubre el conjunto. <b>Despiece</b>: piezas separadas.</p>
+          <p><b>Montado</b>: laterales en la base y bandejas insertadas en sus ranuras. <b>Desmontado</b>: piezas planas apiladas para guardar. <b>Transporte</b>: caja cerrada con asa. <b>Despiece</b>: piezas separadas.</p>
+          <p>Este sistema es <b>flat-pack</b>: no usa bisagras ni pasadores. Se monta deslizando las bandejas en las ranuras de los laterales y se guarda plano.</p>
           <h3>4. Modo 3D</h3>
           <p>El sistema usa bandejas de 2,4 mm, enlaces de 4 mm y pasadores de 4,2 mm. Imprime los enlaces tumbados y los pasadores en vertical. Haz una prueba de encaje antes del set completo.</p>
           <h3>5. Modo láser</h3>

@@ -43,6 +43,7 @@ export interface AppSettings {
   dividerSpacing: number;
   dividerThickness: number;
   trayRadius: number;
+  trayTilt: number;
   frontLipRatio: number;
   pinDiameter: number;
   lidHeight: number;

@@ -45,14 +45,15 @@ def test_default_3d_build_is_complete():
     result = engine.build({"settings": _settings()})
     assert result["ok"]
     assert result["mode"] == "3d"
-    assert 30 <= len(result["parts"]) <= 80
+    assert 10 <= len(result["parts"]) <= 40
     assert result["dimensions"]["width"] == pytest.approx(170, abs=1)
-    assert result["dimensions"]["levels"] == 4
+    assert result["dimensions"]["levels"] == 3
     tray = next(part for part in result["parts"] if part["id"] == "tray-1")
-    assert tray["dimensions"]["height"] == pytest.approx(34, abs=1)
+    assert tray["dimensions"]["height"] == pytest.approx(2.4, abs=0.5)
     assert result["dimensions"]["foldedHeight"] < result["dimensions"]["height"]
-    assert sum(1 for part in result["parts"] if part["id"].startswith("link-")) == 12
-    assert sum(1 for part in result["parts"] if part["id"].startswith("pin-")) == 24
+    assert any(part["id"] == "side-left" for part in result["parts"])
+    assert any(part["id"] == "side-right" for part in result["parts"])
+    assert not any(part["id"].startswith("link-") for part in result["parts"])
     assert any(check["code"] == "bed-fit" for check in result["checks"])
     assert result["material_grams"] > 0
     assert result["bom"]
@@ -88,7 +89,8 @@ def test_all_structural_modules_can_be_disabled():
         }
     )
     assert result["ok"]
-    assert all(part["group"].startswith("tray-") or part["group"] in {"transport", "base"} for part in result["parts"])
+    assert any(part["id"] == "side-left" for part in result["parts"])
+    assert not any(part["id"].startswith("link-") for part in result["parts"])
     assert any(check["code"] == "structure-off" for check in result["checks"])
 
 
@@ -235,22 +237,11 @@ def test_wide_and_narrow_variants_build():
         assert result["dimensions"]["width"] == pytest.approx(width)
 
 
-def test_wide_auto_split_fits_bed_and_reports_splices():
-    result = engine.build({"settings": _settings(width=340, panelSplit=2, autoSplit=True)})
-    assert result["ok"]
-    for part in result["parts"]:
-        assert max(part["dimensions"].values()) <= 257.0
-    ids = {part["id"] for part in result["parts"]}
-    assert "base-2" in ids
-    assert "tray-1-2" in ids
-    assert any(part_id.startswith("tray-1-splice") for part_id in ids)
-    assert any(part_id.startswith("transport-case-2") for part_id in ids)
-    assert any(check["code"] == "auto-split" for check in result["checks"])
-
-
-def test_auto_split_off_warns_for_wide():
-    result = engine.build({"settings": _settings(width=340, panelSplit=2, autoSplit=False)})
-    assert any(check["code"] == "bed-fit" and check["level"] == "warn" for check in result["checks"])
+def test_flatpack_a1_mini_preset_fits():
+    settings = normalize_settings(_settings(width=150, depth=130, shelfDepth=110, levels=2, levelSpacing=45, printer="a1mini", bedWidth=180, bedDepth=180, bedHeight=180))
+    result = engine.build({"settings": settings})
+    assert not any(check["code"] == "bed-fit" and check["level"] == "warn" for check in result["checks"])
+    assert any(part["id"] == "transport-case" for part in result["parts"])
 
 
 def test_laser_side_arms_have_cut_and_score_lines():
@@ -288,20 +279,22 @@ def test_default_is_compact_and_transport_case_is_closed():
     result = engine.build({"settings": settings})
     ids = {part["id"]: part for part in result["parts"]}
     assert result["dimensions"]["width"] == pytest.approx(170, abs=1)
-    assert "transport-case-1" in ids
-    assert ids["transport-case-1"]["transport_only"] is True
+    assert "transport-case" in ids
+    assert ids["transport-case"]["transport_only"] is True
     assert not any(part["group"] == "panel" for part in result["parts"])
     assert not any(part["category"] == "hook" for part in result["parts"])
     assert result["material_grams"] < 1000
 
 
-def test_per_level_gap_changes_link_lengths():
+def test_per_level_gap_moves_trays():
     from displaynian.params import normalize_settings
     settings = normalize_settings(_settings())
     settings["levelConfigs"][1]["gap"] = 72
     settings["levelConfigs"][2]["gap"] = 40
     result = engine.build({"settings": settings})
-    links = {part["id"]: part["dimensions"]["height"] for part in result["parts"] if part["id"].startswith("link-")}
-    assert links["link-1-izq-del"] == pytest.approx(92, abs=1)
-    assert links["link-2-izq-del"] == pytest.approx(60, abs=1)
-    assert links["link-3-izq-del"] == pytest.approx(70, abs=1)
+    trays = {part["id"]: part for part in result["parts"] if part["id"].startswith("tray-") and part["id"].endswith(tuple("123"))}
+    z1 = trays["tray-1"]["open_matrix"][11]
+    z2 = trays["tray-2"]["open_matrix"][11]
+    z3 = trays["tray-3"]["open_matrix"][11]
+    assert z2 - z1 == pytest.approx(72, abs=1)
+    assert z3 - z2 == pytest.approx(40, abs=1)

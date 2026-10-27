@@ -21,16 +21,13 @@ export default function ManufacturingPanel({
             <NumberField label="Paredes" value={settings.walls} min={1} max={8} step={1} unit="" onChange={(value) => onPatch({ walls: value })} />
             <NumberField label="Relleno" value={settings.infill} min={0} max={60} step={1} unit="%" onChange={(value) => onPatch({ infill: value })} />
             <NumberField label="Holgura de encaje" value={settings.clearance} min={0.1} max={0.8} step={0.01} onChange={(value) => onPatch({ clearance: value })} hint="Pasador y bandeja" />
-            <Toggle label="Dividir piezas grandes" hint="Base, bandejas y tapa por módulos" checked={settings.autoSplit} onChange={(value) => onPatch({ autoSplit: value })} />
           </Section>
-          <Section title="Uniones" subtitle="Todo el sistema usa pasadores" icon={<Layers size={15} />} defaultOpen>
-            <NumberField label="Diámetro de pasador" value={settings.pinDiameter} min={2.5} max={8} step={0.1} onChange={(value) => onPatch({ pinDiameter: value })} />
-            <NumberField label="Grosor de enlace" value={settings.sideThickness} min={2} max={8} step={0.5} onChange={(value) => onPatch({ sideThickness: value })} />
-            <NumberField label="Ancho de enlace" value={settings.postDepth} min={18} max={50} step={1} onChange={(value) => onPatch({ postDepth: value })} />
-            <p className="panel-note">Los enlaces se imprimen planos y los pasadores en vertical. Imprime una unidad de prueba antes del set completo.</p>
+          <Section title="Encajes flat-pack" subtitle="Ranuras y tolerancias" icon={<Layers size={15} />} defaultOpen>
+            <NumberField label="Holgura de ranura" value={settings.clearance} min={0.1} max={0.8} step={0.01} onChange={(value) => onPatch({ clearance: value })} />
+            <p className="panel-note">Los laterales y las bandejas se imprimen planos. Comprueba una ranura con un trozo de bandeja antes de imprimir todo el set.</p>
           </Section>
           <Section title="Consejos de impresión" subtitle="Sin soportes y con paredes finas" icon={<ShieldCheck size={15} />}>
-            <p className="panel-note">Bandejas de 2,4 mm, divisores de 1,8 mm y enlaces de 4 mm. Imprime las bandejas con la base en la cama y los enlaces tumbados. Usa PLA para interiores o PETG si vas a plegar muchas veces.</p>
+            <p className="panel-note">Bandejas de 2,4 mm, laterales de 4 mm y base de 3 mm. Todo se imprime plano, sin soportes. Usa PLA para interiores o PETG si vas a montar y desmontar muchas veces.</p>
           </Section>
         </>
       ) : (
@@ -85,7 +82,7 @@ export default function ManufacturingPanel({
           </Section>
           <Section title="Kit impreso" subtitle="Complementos para el display láser" icon={<HardDrive size={15} />}>
             <Toggle label="Incluir kit de enlaces/ganchos" checked={settings.includePrintedKit} onChange={(value) => onPatch({ includePrintedKit: value })} />
-            <p className="panel-note">Si activas el kit, el ZIP láser incluirá también los enlaces, pasadores y ganchos 3D.</p>
+            <p className="panel-note">Si activas el kit, el ZIP láser incluirá también laterales, bandejas y ganchos 3D.</p>
           </Section>
         </>
       )}

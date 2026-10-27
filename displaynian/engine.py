@@ -1339,37 +1339,34 @@ def _transport(settings: dict[str, Any], parts: list[dict[str, Any]]) -> None:
 
 def _bom(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
-    links = sum(1 for part in parts if part["id"].startswith("link-"))
-    pins = sum(1 for part in parts if part["id"].startswith("pin-"))
-    trays = sum(1 for part in parts if part["id"].startswith("tray-") and part["category"] == "shelf")
-    panels = sum(1 for part in parts if part["id"].startswith("panel-") and part["category"] == "panel")
+    sides = sum(1 for part in parts if part["id"] in {"side-left", "side-right"})
+    base = sum(1 for part in parts if part["id"] == "base")
+    trays = sum(1 for part in parts if part["id"].startswith("tray-") and part["category"] == "shelf" and not part["id"].endswith("-lip"))
+    lips = sum(1 for part in parts if part["id"].endswith("-lip"))
+    panels = sum(1 for part in parts if part["category"] == "panel")
     hooks = sum(1 for part in parts if part["category"] == "hook")
-    if links:
-        items.append({"name": "Enlaces de plegado", "quantity": links, "detail": f"{settings['postDepth']:.0f} mm"})
-    if pins:
-        items.append({"name": "Pasadores impresos", "quantity": pins, "detail": f"Ø{settings['pinDiameter']:.1f} mm"})
-    if trays:
-        items.append({"name": "Bandejas", "quantity": trays, "detail": f"{settings['lipHeight']:.0f} mm alto"})
-    if panels:
-        items.append({"name": "Paneles traseros", "quantity": panels, "detail": f"{settings['panelThickness']:.1f} mm"})
     containers = sum(1 for part in parts if "-container-" in part["id"] and not part["id"].endswith("-lid"))
+    lids = sum(1 for part in parts if part["id"].endswith("-lid"))
+    if base:
+        items.append({"name": "Base", "quantity": base, "detail": f"{settings['baseHeight']:.1f} mm"})
+    if sides:
+        items.append({"name": "Laterales", "quantity": sides, "detail": f"{settings['sideThickness']:.1f} mm"})
+    if trays:
+        items.append({"name": "Bandejas", "quantity": trays, "detail": f"{settings['shelfThickness']:.1f} mm"})
+    if lips:
+        items.append({"name": "Labios", "quantity": lips, "detail": f"{settings['lipHeight']:.0f} mm"})
+    if panels:
+        items.append({"name": "Paneles", "quantity": panels, "detail": f"{settings['panelThickness']:.1f} mm"})
     if containers:
-        items.append({"name": "Contenedores individuales", "quantity": containers, "detail": "Extraíbles"})
-        lids = sum(1 for part in parts if part["id"].endswith("-lid"))
-        if lids:
-            items.append({"name": "Tapas de contenedor", "quantity": lids, "detail": "Extraíbles"})
-    splices = sum(1 for part in parts if "splice" in part["id"])
-    if splices:
-        items.append({"name": "Tornillos M3 × 10 + tuercas", "quantity": splices * 4, "detail": "Uniones de base/bandeja"})
+        items.append({"name": "Contenedores", "quantity": containers, "detail": "Extraíbles"})
+    if lids:
+        items.append({"name": "Tapas de contenedor", "quantity": lids, "detail": "Extraíbles"})
     if hooks:
         items.append({"name": "Ganchos", "quantity": hooks, "detail": settings["hookType"]})
-    if settings["panelJoiners"] and panels > 1:
-        items.append({"name": "Uniones de panel", "quantity": max(2, panels - 1), "detail": "Paneles partidos"})
     if settings["feet"]:
         items.append({"name": "Pies", "quantity": 4, "detail": "Base"})
     if settings["transportLid"]:
-        cases = sum(1 for part in parts if part["id"].startswith("transport-case"))
-        items.append({"name": "Caja de transporte", "quantity": max(1, cases), "detail": "Con asa" if settings["transportHandle"] else "Sin asa"})
+        items.append({"name": "Caja de transporte", "quantity": 1, "detail": "Con asa"})
     return items
 
 
@@ -1419,27 +1416,24 @@ def _checks(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[
             add("ok", "Paredes imprimibles", f"Bandeja de {settings['shelfThickness']:.1f} mm con boquilla {settings['nozzle']:.1f} mm.", "thin-wall")
         if settings["dividerThickness"] < settings["nozzle"] * 1.8:
             add("warn", "Divisores finos", "Los divisores de menos de 1,8 mm pueden romperse al desmoldar. Sube el grosor.", "divider-thin")
-        panel_w = (settings["width"] - 2 * settings["sideThickness"] - 4) / max(1, settings["panelSplit"])
-        panel_h = settings["backHeight"] / max(1, settings["panelRows"])
-        if panel_w > settings["bedWidth"] or panel_h > settings["bedDepth"]:
-            add("warn", "Panel sin dividir", f"El panel queda en {panel_w:.0f} × {panel_h:.0f} mm. Sube columnas o filas del panel.", "panel-split")
-        else:
-            add("ok", "Panel imprimible", f"Panel en {panel_w:.0f} × {panel_h:.0f} mm por pieza.", "panel-split")
+        if settings["backPanel"] != "none":
+            panel_w = settings["width"] / max(1, settings["panelSplit"])
+            panel_h = settings["backHeight"] / max(1, settings["panelRows"])
+            if panel_w > settings["bedWidth"] or panel_h > settings["bedDepth"]:
+                add("warn", "Panel sin dividir", f"El panel queda en {panel_w:.0f} × {panel_h:.0f} mm. Sube columnas o filas del panel.", "panel-split")
+            else:
+                add("ok", "Panel imprimible", f"Panel en {panel_w:.0f} × {panel_h:.0f} mm por pieza.", "panel-split")
         height = settings["baseHeight"] + settings["backHeight"]
         footprint = settings["width"] * settings["depth"]
         if height > 1.8 * min(settings["width"], settings["depth"]):
             add("warn", "Riesgo de vuelco", "El display es alto para su huella. Baja la altura, añade lastre o usa correas.", "stability")
         else:
             add("ok", "Estabilidad razonable", "Huella y altura dentro de la proporción recomendada.", "stability")
-        if settings["addFront"] and settings["levels"] > 1:
-            expected_links = (settings["levels"] - 1) * 4
-            links = sum(1 for part in parts if part["id"].startswith("link-"))
-            if links < expected_links:
-                add("warn", "Faltan enlaces", f"Se esperaban {expected_links} enlaces y hay {links}.", "links")
-            else:
-                add("ok", "Enlaces completos", f"{links} enlaces y {sum(1 for part in parts if part['id'].startswith('pin-'))} pasadores.", "links")
-        if settings["pinDiameter"] < 3.5:
-            add("warn", "Pasador fino", "Un pasador de menos de 3,5 mm puede romperse al plegar. Sube el diámetro.", "pin")
+        trays = sum(1 for part in parts if part["id"].startswith("tray-") and part["category"] == "shelf" and not part["id"].endswith("-lip"))
+        if trays >= settings["levels"]:
+            add("ok", "Estructura flat-pack", f"{trays} bandejas en ranuras laterales, sin tornillos.", "flatpack")
+        else:
+            add("warn", "Faltan bandejas", "Activa los niveles para completar la estructura.", "flatpack")
         level_configs = settings.get("levelConfigs", [])
         tight = [level["gap"] for level in level_configs[1:] if level.get("enabled", True) and level.get("gap", settings["levelSpacing"]) < settings["lipHeight"] + 6.0]
         if tight:
@@ -1499,7 +1493,7 @@ def _wire_parts(parts: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _assemble(settings: dict[str, Any]) -> list[dict[str, Any]]:
-    from .foldable import build_parts
+    from .flatpack import build_parts
 
     return build_parts(settings, _part)
 

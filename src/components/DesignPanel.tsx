@@ -31,12 +31,14 @@ export default function DesignPanel({
         bedWidth: printer.width,
         bedDepth: printer.depth,
         bedHeight: printer.height,
-        width: 170,
-        depth: 170,
-        shelfDepth: 150,
-        levelSpacing: 50,
-        levels: 4,
-        ...fitPanel(printer, 170, 4, 50),
+        width: 150,
+        depth: 130,
+        shelfDepth: 110,
+        levelSpacing: 45,
+        levels: 2,
+        backPanel: "none",
+        hooks: 0,
+        ...fitPanel(printer, 150, 2, 45),
       };
     }
     return { printer: printer.id, bedWidth: printer.width, bedDepth: printer.depth, bedHeight: printer.height, ...fitPanel(printer) };
@@ -68,7 +70,8 @@ export default function DesignPanel({
         <NumberField label="Niveles" value={settings.levels} min={1} max={6} step={1} unit="" slider onChange={(value) => onPatch({ levels: value })} />
         <NumberField label="Separación entre niveles" value={settings.levelSpacing} min={38} max={110} step={1} slider onChange={(value) => onPatch({ levelSpacing: value })} />
         <NumberField label="Fondo de bandeja" value={settings.shelfDepth} min={60} max={settings.depth - 16} step={1} onChange={(value) => onPatch({ shelfDepth: value })} />
-        <NumberField label="Altura de bandeja" value={settings.lipHeight} min={18} max={70} step={1} onChange={(value) => onPatch({ lipHeight: value })} />
+        <NumberField label="Altura de bandeja" value={settings.lipHeight} min={8} max={60} step={1} onChange={(value) => onPatch({ lipHeight: value })} />
+        <NumberField label="Inclinación de bandeja" value={settings.trayTilt} min={0} max={30} step={1} unit="°" onChange={(value) => onPatch({ trayTilt: value })} />
         <NumberField label="Grosor de pared" value={settings.shelfThickness} min={1.6} max={5} step={0.2} onChange={(value) => onPatch({ shelfThickness: value })} hint="2–3 mm recomendado" />
         <NumberField label="Separación de divisiones" value={settings.dividerSpacing} min={20} max={80} step={1} onChange={(value) => onPatch({ dividerSpacing: value })} />
         <NumberField label="Grosor de divisor" value={settings.dividerThickness} min={1.2} max={4} step={0.1} onChange={(value) => onPatch({ dividerThickness: value })} />
@@ -95,7 +98,7 @@ export default function DesignPanel({
           <button type="button" className="chip-button" onClick={() => onPatch({ levels: 4 })}>4 bandejas</button>
           <button type="button" className="chip-button" onClick={() => onPatch({ levels: 5 })}>5 bandejas</button>
         </div>
-        <p className="panel-note">Wide 340 repite el ancho de la referencia. La base, las bandejas y la tapa se dividen automáticamente si no caben; para una pieza única usa H2D.</p>
+        <p className="panel-note">Wide 340 necesita una cama grande o reducir el ancho; el formato compacto está pensado para A1/A1 Mini.</p>
       </Section>
 
       <Section title="Panel trasero" subtitle="SKÅDIS, panal, marca o liso" icon={<PanelTop size={15} />} defaultOpen>
@@ -112,23 +115,18 @@ export default function DesignPanel({
 
       <LevelsEditor settings={settings} onPatch={onPatch} onLevel={onLevel} />
 
-      <Section title="Plegado y transporte" subtitle="Enlaces y pasadores" icon={<FoldHorizontal size={15} />}>
-        <NumberField label="Ángulo de enlaces" value={settings.foldAngle} min={30} max={85} step={1} unit="°" onChange={(value) => onPatch({ foldAngle: value })} hint="60° = pila compacta y enlaces dentro" />
+      <Section title="Transporte y empaquetado" subtitle="Caja cerrada y piezas planas" icon={<FoldHorizontal size={15} />}>
         <Toggle label="Modo transporte" checked={settings.transport} onChange={(value) => onPatch({ transport: value })} />
         <Toggle label="Tapa" checked={settings.transportLid} onChange={(value) => onPatch({ transportLid: value })} />
         <Toggle label="Asa" checked={settings.transportHandle} onChange={(value) => onPatch({ transportHandle: value })} />
       </Section>
 
-      <Section title="Enlaces y pasadores" subtitle="Uniones reales del sistema" icon={<Box size={15} />} defaultOpen>
-        <Toggle label="Enlaces de plegado" checked={settings.addFront} onChange={(value) => onPatch({ addFront: value })} />
-        <Toggle label="Panel trasero" checked={settings.addRear} onChange={(value) => onPatch({ addRear: value })} />
-        <Toggle label="Base" checked={settings.addBase} onChange={(value) => onPatch({ addBase: value })} />
-        <NumberField label="Grosor de enlace" value={settings.sideThickness} min={2} max={8} step={0.5} onChange={(value) => onPatch({ sideThickness: value })} />
-        <NumberField label="Ancho de enlace" value={settings.postDepth} min={18} max={50} step={1} onChange={(value) => onPatch({ postDepth: value })} />
-        <NumberField label="Diámetro de pasador" value={settings.pinDiameter} min={2.5} max={8} step={0.1} onChange={(value) => onPatch({ pinDiameter: value })} />
-        <NumberField label="Altura de tapa" value={settings.lidHeight} min={20} max={90} step={1} onChange={(value) => onPatch({ lidHeight: value })} />
-        <Toggle label="Uniones de panel" checked={settings.panelJoiners} onChange={(value) => onPatch({ panelJoiners: value })} />
+      <Section title="Estructura flat-pack" subtitle="Laterales, base y bandejas" icon={<Box size={15} />} defaultOpen>
+        <NumberField label="Grosor de laterales" value={settings.sideThickness} min={2} max={8} step={0.5} onChange={(value) => onPatch({ sideThickness: value })} />
+        <NumberField label="Grosor de base" value={settings.baseHeight} min={2} max={10} step={0.5} onChange={(value) => onPatch({ baseHeight: value })} />
+        <NumberField label="Grosor de bandeja" value={settings.shelfThickness} min={1.6} max={5} step={0.2} onChange={(value) => onPatch({ shelfThickness: value })} />
         <Toggle label="Pies" checked={settings.feet} onChange={(value) => onPatch({ feet: value })} />
+        <p className="panel-note">Las bandejas se deslizan en las ranuras de los laterales. Sin tornillos ni bisagras.</p>
       </Section>
 
       <Section title="Perfil de impresora" subtitle="Para avisos de cama" icon={<Settings2 size={15} />}>
