@@ -1265,6 +1265,27 @@ def _transport(settings: dict[str, Any], parts: list[dict[str, Any]]) -> None:
             transport_only=True,
             category="transport",
         )
+    if settings["stackable"] and settings["transportLid"]:
+        for index, (x, y) in enumerate(
+            [
+                (14.0, 14.0),
+                (width - 34.0, 14.0),
+                (14.0, depth - 34.0),
+                (width - 34.0, depth - 34.0),
+            ],
+            start=1,
+        ):
+            _part(
+                parts,
+                f"stack-pad-{index}",
+                f"Apoyo de apilado {index}",
+                "transport",
+                box(x, y, stack_h + lid_h + 3.0, 20.0, 20.0, 5.0),
+                "corner",
+                settings,
+                transport_only=True,
+                category="transport",
+            )
 
 
 def _bom(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[str, Any]]:
