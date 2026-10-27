@@ -35,34 +35,18 @@ export default function DesignPanel({
         </div>
       </Section>
 
-      <Section title="Dimensiones" subtitle="La base de todo el sistema" icon={<Ruler size={15} />} defaultOpen>
-        <NumberField label="Ancho total" value={settings.width} min={120} max={900} step={5} slider onChange={(value) => onPatch({ width: value })} />
-        <NumberField label="Fondo total" value={settings.depth} min={120} max={600} step={5} slider onChange={(value) => onPatch({ depth: value })} />
+      <Section title="Dimensiones" subtitle="Bandejas finas y enlaces" icon={<Ruler size={15} />} defaultOpen>
+        <NumberField label="Ancho total" value={settings.width} min={120} max={500} step={5} slider onChange={(value) => onPatch({ width: value })} />
+        <NumberField label="Fondo total" value={settings.depth} min={120} max={400} step={5} slider onChange={(value) => onPatch({ depth: value })} />
         <NumberField label="Niveles" value={settings.levels} min={1} max={6} step={1} unit="" slider onChange={(value) => onPatch({ levels: value })} />
-        <NumberField label="Separación entre niveles" value={settings.levelSpacing} min={35} max={180} step={1} slider onChange={(value) => onPatch({ levelSpacing: value })} />
-        <NumberField label="Fondo de bandeja" value={settings.shelfDepth} min={50} max={settings.depth - 20} step={1} slider onChange={(value) => onPatch({ shelfDepth: value })} />
-        <NumberField label="Estrechamiento superior" value={settings.shelfTaper} min={0.55} max={1} step={0.01} unit="" onChange={(value) => onPatch({ shelfTaper: value })} />
+        <NumberField label="Separación entre niveles" value={settings.levelSpacing} min={38} max={110} step={1} slider onChange={(value) => onPatch({ levelSpacing: value })} />
+        <NumberField label="Fondo de bandeja" value={settings.shelfDepth} min={60} max={settings.depth - 16} step={1} onChange={(value) => onPatch({ shelfDepth: value })} />
+        <NumberField label="Altura de bandeja" value={settings.lipHeight} min={18} max={70} step={1} onChange={(value) => onPatch({ lipHeight: value })} />
+        <NumberField label="Grosor de pared" value={settings.shelfThickness} min={1.6} max={5} step={0.2} onChange={(value) => onPatch({ shelfThickness: value })} hint="2–3 mm recomendado" />
+        <NumberField label="Separación de divisiones" value={settings.dividerSpacing} min={20} max={80} step={1} onChange={(value) => onPatch({ dividerSpacing: value })} />
+        <NumberField label="Grosor de divisor" value={settings.dividerThickness} min={1.2} max={4} step={0.1} onChange={(value) => onPatch({ dividerThickness: value })} />
+        <NumberField label="Radio de bandeja" value={settings.trayRadius} min={0} max={15} step={0.5} onChange={(value) => onPatch({ trayRadius: value })} />
         <div className="quick-row">
-          <button
-            type="button"
-            className="ghost-button"
-            onClick={() => {
-              const usableWidth = Math.max(120, settings.bedWidth - 16);
-              const usableDepth = Math.max(120, settings.bedDepth - 16);
-              const levels = Math.max(1, settings.levels);
-              const maxSpacing = Math.max(35, (settings.bedHeight - settings.baseHeight - settings.lipHeight - 24) / levels);
-              const width = Math.min(settings.width, usableWidth);
-              onPatch({
-                width,
-                depth: Math.min(settings.depth, usableDepth),
-                shelfDepth: Math.min(settings.shelfDepth, usableDepth - 20),
-                levelSpacing: Math.min(settings.levelSpacing, maxSpacing),
-                panelSplit: Math.max(settings.panelSplit, Math.ceil(width / Math.max(40, settings.bedWidth - 12))),
-              });
-            }}
-          >
-            Ajustar a mi cama
-          </button>
           {PRINTERS.filter((printer) => printer.id !== "custom").map((printer) => (
             <button
               key={printer.id}
@@ -74,50 +58,53 @@ export default function DesignPanel({
             </button>
           ))}
         </div>
-        <p className="panel-note">Las piezas mayores que la cama se avisan en Preflight. Para paneles grandes usa divisiones y clips de unión.</p>
       </Section>
 
-      <Section title="Panel trasero" subtitle="SKÅDIS, panal, marca o liso" icon={<PanelTop size={15} />}>
+      <Section title="Variantes" subtitle="Ancho y número de bandejas" icon={<LayoutGrid size={15} />} defaultOpen>
+        <div className="quick-row">
+          <button type="button" className="ghost-button" onClick={() => onPatch({ width: 340, depth: 190, shelfDepth: 160, levels: 4, panelSplit: 2 })}>Wide 340</button>
+          <button type="button" className="ghost-button" onClick={() => onPatch({ width: 230, depth: 190, shelfDepth: 150, levels: 4, panelSplit: 1 })}>Narrow 230</button>
+          <button type="button" className="chip-button" onClick={() => onPatch({ levels: 3 })}>3 bandejas</button>
+          <button type="button" className="chip-button" onClick={() => onPatch({ levels: 4 })}>4 bandejas</button>
+          <button type="button" className="chip-button" onClick={() => onPatch({ levels: 5 })}>5 bandejas</button>
+        </div>
+        <p className="panel-note">Wide 340 repite el ancho de la referencia; si tu cama es 256, divide el panel y la base o usa una impresora grande.</p>
+      </Section>
+
+      <Section title="Panel trasero" subtitle="SKÅDIS, panal, marca o liso" icon={<PanelTop size={15} />} defaultOpen>
         <SelectField label="Tipo de panel" value={settings.backPanel} options={BACK_PANELS} onChange={(value) => onPatch({ backPanel: value })} />
-        <NumberField label="Altura del panel" value={settings.backHeight || Math.round(settings.baseHeight + settings.levels * settings.levelSpacing + settings.lipHeight + 24)} min={80} max={900} step={5} onChange={(value) => onPatch({ backHeight: value })} hint="0 = automática" />
-        <NumberField label="Grosor" value={settings.panelThickness} min={2} max={20} step={0.5} onChange={(value) => onPatch({ panelThickness: value })} />
-        <NumberField label="Divisiones" value={settings.panelSplit} min={1} max={6} step={1} unit="" onChange={(value) => onPatch({ panelSplit: value })} />
-        <NumberField label="Margen del panel" value={settings.panelMargin} min={4} max={60} step={1} onChange={(value) => onPatch({ panelMargin: value })} />
+        <NumberField label="Altura del panel" value={settings.backHeight || Math.round(settings.baseHeight + (settings.levels - 1) * settings.levelSpacing + settings.lipHeight + 80)} min={80} max={650} step={5} onChange={(value) => onPatch({ backHeight: value })} hint="0 = automática" />
+        <NumberField label="Grosor" value={settings.panelThickness} min={1.5} max={8} step={0.5} onChange={(value) => onPatch({ panelThickness: value })} />
+        <NumberField label="Columnas" value={settings.panelSplit} min={1} max={4} step={1} unit="" onChange={(value) => onPatch({ panelSplit: value })} />
+        <NumberField label="Filas" value={settings.panelRows} min={1} max={4} step={1} unit="" onChange={(value) => onPatch({ panelRows: value })} />
+        <label className="field">
+          <span className="field-label"><span>Texto del cartel</span><small>Etiqueta de papel 80 × 20 mm</small></span>
+          <input className="text-input" value={settings.signText} maxLength={24} onChange={(event) => onPatch({ signText: event.target.value })} />
+        </label>
       </Section>
 
       <LevelsEditor settings={settings} onPatch={onPatch} onLevel={onLevel} />
 
-      <Section title="Plegado y transporte" subtitle="Cómo se lleva el display" icon={<FoldHorizontal size={15} />}>
-        <SelectField
-          label="Mecánica"
-          value={settings.foldMode}
-          options={[
-            { value: "zfold", label: "Z-fold con bandejas extraíbles" },
-            { value: "accordion", label: "Acordeón nivelado (experimental)" },
-          ]}
-          onChange={(value) => onPatch({ foldMode: value })}
-        />
-        <NumberField label="Ángulo de plegado" value={settings.foldAngle} min={45} max={95} step={1} unit="°" onChange={(value) => onPatch({ foldAngle: value })} />
-        <Toggle label="Modo transporte" hint="Tapa, asa y bloqueos" checked={settings.transport} onChange={(value) => onPatch({ transport: value })} />
+      <Section title="Plegado y transporte" subtitle="Enlaces y pasadores" icon={<FoldHorizontal size={15} />}>
+        <NumberField label="Ángulo de enlaces" value={settings.foldAngle} min={30} max={85} step={1} unit="°" onChange={(value) => onPatch({ foldAngle: value })} hint="68° = pila compacta" />
+        <Toggle label="Modo transporte" checked={settings.transport} onChange={(value) => onPatch({ transport: value })} />
         <Toggle label="Tapa" checked={settings.transportLid} onChange={(value) => onPatch({ transportLid: value })} />
         <Toggle label="Asa" checked={settings.transportHandle} onChange={(value) => onPatch({ transportHandle: value })} />
-        <Toggle label="Apilable plegado" checked={settings.stackable} onChange={(value) => onPatch({ stackable: value })} />
-        <Toggle label="Lastre" hint="Hueco para arena o metal" checked={settings.ballast} onChange={(value) => onPatch({ ballast: value })} />
-        <Toggle label="Ranuras para correas" checked={settings.strapSlots} onChange={(value) => onPatch({ strapSlots: value })} />
       </Section>
 
-      <Section title="Estructura" subtitle="Activa o simplifica el chasis" icon={<Box size={15} />}>
+      <Section title="Enlaces y pasadores" subtitle="Uniones reales del sistema" icon={<Box size={15} />} defaultOpen>
+        <Toggle label="Enlaces de plegado" checked={settings.addFront} onChange={(value) => onPatch({ addFront: value })} />
+        <Toggle label="Panel trasero" checked={settings.addRear} onChange={(value) => onPatch({ addRear: value })} />
         <Toggle label="Base" checked={settings.addBase} onChange={(value) => onPatch({ addBase: value })} />
-        <Toggle label="Marco trasero" checked={settings.addRear} onChange={(value) => onPatch({ addRear: value })} />
-        <Toggle label="Marco delantero" checked={settings.addFront} onChange={(value) => onPatch({ addFront: value })} />
-        <Toggle label="Bloqueos" checked={settings.addLocks} onChange={(value) => onPatch({ addLocks: value })} />
-        <NumberField label="Grosor de laterales" value={settings.sideThickness} min={3} max={20} step={0.5} onChange={(value) => onPatch({ sideThickness: value })} />
-        <NumberField label="Grosor de bandeja" value={settings.shelfThickness} min={2} max={16} step={0.5} onChange={(value) => onPatch({ shelfThickness: value })} />
-        <NumberField label="Altura de base" value={settings.baseHeight} min={3} max={30} step={0.5} onChange={(value) => onPatch({ baseHeight: value })} />
-        <NumberField label="Radio de base" value={settings.baseRadius} min={0} max={40} step={1} onChange={(value) => onPatch({ baseRadius: value })} />
+        <NumberField label="Grosor de enlace" value={settings.sideThickness} min={2} max={8} step={0.5} onChange={(value) => onPatch({ sideThickness: value })} />
+        <NumberField label="Ancho de enlace" value={settings.postDepth} min={18} max={50} step={1} onChange={(value) => onPatch({ postDepth: value })} />
+        <NumberField label="Diámetro de pasador" value={settings.pinDiameter} min={2.5} max={8} step={0.1} onChange={(value) => onPatch({ pinDiameter: value })} />
+        <NumberField label="Altura de tapa" value={settings.lidHeight} min={20} max={90} step={1} onChange={(value) => onPatch({ lidHeight: value })} />
+        <Toggle label="Uniones de panel" checked={settings.panelJoiners} onChange={(value) => onPatch({ panelJoiners: value })} />
+        <Toggle label="Pies" checked={settings.feet} onChange={(value) => onPatch({ feet: value })} />
       </Section>
 
-      <Section title="Perfil de impresora" subtitle="Para avisos de cama y división" icon={<Settings2 size={15} />}>
+      <Section title="Perfil de impresora" subtitle="Para avisos de cama" icon={<Settings2 size={15} />}>
         <SelectField
           label="Impresora"
           value={settings.printer}

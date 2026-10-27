@@ -189,6 +189,7 @@ def _part(
     transport_only: bool = False,
     category: str = "structure",
     explode: tuple[float, float, float] | None = None,
+    fold_hide: bool = False,
 ) -> None:
     if mesh.empty or part_id in settings["disabledParts"]:
         return
@@ -217,6 +218,7 @@ def _part(
             "open_matrix": matrix_array(open_matrix if open_matrix is not None else IDENTITY),
             "fold_matrix": matrix_array(fold_matrix if fold_matrix is not None else IDENTITY),
             "transport_only": transport_only,
+            "fold_hide": fold_hide,
             "explode": list(explode or (0.0, 0.0, 0.0)),
         }
     )
@@ -1335,32 +1337,44 @@ def _transport(settings: dict[str, Any], parts: list[dict[str, Any]]) -> None:
 
 def _bom(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
+    links = sum(1 for part in parts if part["id"].startswith("link-"))
+    pins = sum(1 for part in parts if part["id"].startswith("pin-"))
+    trays = sum(1 for part in parts if part["id"].startswith("tray-") and part["category"] == "shelf")
+    panels = sum(1 for part in parts if part["id"].startswith("panel-") and part["category"] == "panel")
     hooks = sum(1 for part in parts if part["category"] == "hook")
+    if links:
+        items.append({"name": "Enlaces de plegado", "quantity": links, "detail": f"{settings['postDepth']:.0f} mm"})
+    if pins:
+        items.append({"name": "Pasadores impresos", "quantity": pins, "detail": f"Ø{settings['pinDiameter']:.1f} mm"})
+    if trays:
+        items.append({"name": "Bandejas", "quantity": trays, "detail": f"{settings['lipHeight']:.0f} mm alto"})
+    if panels:
+        items.append({"name": "Paneles traseros", "quantity": panels, "detail": f"{settings['panelThickness']:.1f} mm"})
     if hooks:
         items.append({"name": "Ganchos", "quantity": hooks, "detail": settings["hookType"]})
-    if settings["joinery"] in {"chicago", "hybrid"}:
-        items.append({"name": "Tornillos Chicago M5 × 4 mm", "quantity": 8, "detail": "Pivotes de plegado"})
-    if settings["joinery"] in {"dowel", "hybrid"}:
-        items.append({"name": "Pasadores impresos Ø6 mm", "quantity": 8, "detail": "Alineación y pivotes"})
-    if settings["strapSlots"]:
-        items.append({"name": "Correas de velcro 20 mm", "quantity": 2, "detail": "Anclaje de base"})
-    if settings["panelSplit"] > 1 or settings["panelJoiners"]:
-        items.append({"name": "Clips de unión de panel", "quantity": max(2, (settings["panelSplit"] - 1) * 2), "detail": "Paneles divididos"})
-    if settings["cornerBrackets"]:
-        items.append({"name": "Tornillos M3 de esquina", "quantity": 8, "detail": f"Ø{settings['cornerScrew']:.1f} mm"})
-    if settings["wallMounts"]:
-        items.append({"name": "Tornillos de pared", "quantity": 4, "detail": "Colgadores"})
+    if settings["panelJoiners"] and panels > 1:
+        items.append({"name": "Uniones de panel", "quantity": max(2, panels - 1), "detail": "Paneles partidos"})
     if settings["feet"]:
-        items.append({"name": "Pies antideslizantes", "quantity": 4, "detail": "Base"})
-    if settings["hookLocks"] and hooks:
-        items.append({"name": "Seguros de gancho", "quantity": hooks * 2, "detail": "SKÅDIS"})
-    if settings["bins"]:
-        items.append({"name": "Bandejas organizadoras", "quantity": settings["bins"], "detail": "Con tapa" if settings["binLids"] else "Sin tapa"})
-    if settings["priceTags"]:
-        items.append({"name": "Portaprecios", "quantity": settings["priceTags"], "detail": "Papel 50 × 18 mm"})
-    if settings["letters"]:
-        items.append({"name": "Letras", "quantity": settings["letters"], "detail": "A-Z + ÄÖÜ"})
+        items.append({"name": "Pies", "quantity": 4, "detail": "Base"})
+    if settings["transportLid"]:
+        items.append({"name": "Tapa de transporte", "quantity": 1, "detail": "Con asa" if settings["transportHandle"] else "Sin asa"})
     return items
+
+
+def _matrix_bounds(part: dict[str, Any], key: str) -> tuple[list[float], list[float]]:
+    values = np.asarray(part[key], dtype=float).reshape(4, 4)
+    low = np.asarray(part["bounds"]["min"], dtype=float)
+    high = np.asarray(part["bounds"]["max"], dtype=float)
+    corners = np.array(
+        [
+            [x, y, z, 1.0]
+            for x in (low[0], high[0])
+            for y in (low[1], high[1])
+            for z in (low[2], high[2])
+        ]
+    )
+    transformed = (corners @ values.T)[:, :3]
+    return transformed.min(axis=0).tolist(), transformed.max(axis=0).tolist()
 
 
 def _checks(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[str, str]]:
@@ -1373,70 +1387,64 @@ def _checks(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[
         add("error", "Sin piezas", "Activa la estructura o algún accesorio para generar el display.", "empty")
         return checks
     sized = [
-        (
-            part["bounds"]["max"][0] - part["bounds"]["min"][0],
-            part["bounds"]["max"][1] - part["bounds"]["min"][1],
-            part["bounds"]["max"][2] - part["bounds"]["min"][2],
-            part["name"],
-        )
+        (part["bounds"]["max"][0] - part["bounds"]["min"][0], part["bounds"]["max"][1] - part["bounds"]["min"][1], part["bounds"]["max"][2] - part["bounds"]["min"][2], part["name"], part["id"])
         for part in parts
     ]
-    max_part = max(sized, key=lambda item: max(item[0], item[1], item[2])) if sized else (0.0, 0.0, 0.0, "")
-    max_x, max_y, max_z, max_name = max_part
+    max_part = max(sized, key=lambda item: max(item[0], item[1], item[2])) if sized else (0.0, 0.0, 0.0, "", "")
+    max_x, max_y, max_z, max_name, _ = max_part
     if settings["mode"] == "3d":
         too_big = []
-        for part in parts:
-            width = part["bounds"]["max"][0] - part["bounds"]["min"][0]
-            depth = part["bounds"]["max"][1] - part["bounds"]["min"][1]
-            height = part["bounds"]["max"][2] - part["bounds"]["min"][2]
+        for width, depth, height, name, _ in sized:
             if width > settings["bedWidth"] + 0.5 or depth > settings["bedDepth"] + 0.5 or height > settings["bedHeight"] + 0.5:
-                too_big.append(part["name"])
+                too_big.append(name)
         if too_big:
-            add(
-                "warn",
-                "Pieza mayor que la cama",
-                f"{len(too_big)} pieza(s) no caben en {settings['bedWidth']:.0f} × {settings['bedDepth']:.0f} × {settings['bedHeight']:.0f} mm: {', '.join(too_big[:4])}{'…' if len(too_big) > 4 else ''}. Divide paneles o cambia de impresora.",
-                "bed-fit",
-            )
+            add("warn", "Pieza mayor que la cama", f"{len(too_big)} pieza(s) no caben: {', '.join(too_big[:4])}. Divide paneles o reduce medidas.", "bed-fit")
         else:
             add("ok", "Cabe en la cama", f"Pieza mayor: {max_name} ({max_x:.0f} × {max_y:.0f} × {max_z:.0f} mm).", "bed-fit")
-        if settings["backPanel"] != "none" and settings["width"] > settings["bedWidth"] and settings["panelSplit"] == 1:
-            add("warn", "Panel sin dividir", "El panel trasero es más ancho que la cama. Sube las divisiones del panel.", "panel-split")
-        if settings["joinery"] == "snap" and settings["material"] == "pla":
-            add("info", "Clips en PLA", "Para plegado frecuente usa PETG o ASA; el PLA puede fatigar los clips.", "material")
+        if settings["shelfThickness"] < settings["nozzle"] * 2.4:
+            add("warn", "Paredes demasiado finas", "La bandeja necesita al menos 2,4 líneas de pared para ser rígida. Sube el grosor o usa boquilla menor.", "thin-wall")
+        else:
+            add("ok", "Paredes imprimibles", f"Bandeja de {settings['shelfThickness']:.1f} mm con boquilla {settings['nozzle']:.1f} mm.", "thin-wall")
+        if settings["dividerThickness"] < settings["nozzle"] * 1.8:
+            add("warn", "Divisores finos", "Los divisores de menos de 1,8 mm pueden romperse al desmoldar. Sube el grosor.", "divider-thin")
+        panel_w = (settings["width"] - 2 * settings["sideThickness"] - 4) / max(1, settings["panelSplit"])
+        panel_h = settings["backHeight"] / max(1, settings["panelRows"])
+        if panel_w > settings["bedWidth"] or panel_h > settings["bedDepth"]:
+            add("warn", "Panel sin dividir", f"El panel queda en {panel_w:.0f} × {panel_h:.0f} mm. Sube columnas o filas del panel.", "panel-split")
+        else:
+            add("ok", "Panel imprimible", f"Panel en {panel_w:.0f} × {panel_h:.0f} mm por pieza.", "panel-split")
         height = settings["baseHeight"] + settings["backHeight"]
         footprint = settings["width"] * settings["depth"]
         if height > 1.8 * min(settings["width"], settings["depth"]):
-            add("warn", "Riesgo de vuelco", "El display es alto para su huella. Usa lastre, correas o baja la altura.", "stability")
-        elif footprint > 0:
+            add("warn", "Riesgo de vuelco", "El display es alto para su huella. Baja la altura, añade lastre o usa correas.", "stability")
+        else:
             add("ok", "Estabilidad razonable", "Huella y altura dentro de la proporción recomendada.", "stability")
-        if settings["ballast"]:
-            add("info", "Lastre disponible", "El hueco de lastre acepta arena, arandelas o piezas metálicas.", "ballast")
+        if settings["addFront"] and settings["levels"] > 1:
+            expected_links = (settings["levels"] - 1) * 4
+            links = sum(1 for part in parts if part["id"].startswith("link-"))
+            if links < expected_links:
+                add("warn", "Faltan enlaces", f"Se esperaban {expected_links} enlaces y hay {links}.", "links")
+            else:
+                add("ok", "Enlaces completos", f"{links} enlaces y {sum(1 for part in parts if part['id'].startswith('pin-'))} pasadores.", "links")
+        if settings["pinDiameter"] < 3.5:
+            add("warn", "Pasador fino", "Un pasador de menos de 3,5 mm puede romperse al plegar. Sube el diámetro.", "pin")
         if settings["hooks"] > 0:
             capacity = max(1, int((settings["backHeight"] - 40) / 42.0) * max(1, int((settings["width"] - 40) / 40.0)))
             if settings["hooks"] > capacity:
-                add("warn", "Demasiados ganchos", f"El panel admite aproximadamente {capacity} ganchos con la rejilla actual.", "hook-capacity")
+                add("warn", "Demasiados ganchos", f"El panel admite aproximadamente {capacity} ganchos.", "hook-capacity")
             else:
                 add("ok", "Ganchos colocados", f"{settings['hooks']} ganchos sobre el panel.", "hook-capacity")
+        if not settings["addBase"] or not settings["addFront"] or not settings["addRear"]:
+            add("warn", "Estructura incompleta", "Has desactivado base, enlaces o panel. El display puede no sostenerse solo.", "structure-off")
     else:
-        sheet_fit = max_x <= settings["sheetWidth"] and max_y <= settings["sheetHeight"]
-        if sheet_fit:
-            add("ok", "Láminas compatibles", "Las piezas caben en la hoja configurada.", "sheet-fit")
-        else:
-            add("warn", "Pieza mayor que la hoja", "Aumenta la hoja, divide paneles o reduce el display.", "sheet-fit")
+        add("ok", "Modo láser", "El modo láser genera paneles 2D y deja los enlaces/pasadores como kit impreso opcional.", "laser")
         if settings["livingHinge"] and settings["laserThickness"] > 4.0:
             add("warn", "Bisagra viva gruesa", "La bisagra viva es fiable en chapa de 3–4 mm; para 6 mm usa el kit de bisagras impresas.", "hinge-thickness")
-        if settings["livingHinge"]:
-            add("info", "Veta de la madera", "Coloca la veta paralela al eje de flexión de la bisagra.", "hinge-grain")
         if settings["kerf"] <= 0:
             add("warn", "Kerf sin definir", "Mide el kerf real y ajusta el encaje antes de cortar.", "kerf")
         else:
             add("ok", "Kerf configurado", f"Compensación de {settings['kerf']:.2f} mm; corta una galga de prueba.", "kerf")
         add("info", "Espesor real", "Mide el material con calibre; el espesor nominal suele variar.", "thickness")
-    if not settings["addBase"] or not settings["addFront"] or not settings["addRear"]:
-        add("warn", "Estructura incompleta", "Has desactivado base, frontal o trasero. El display puede no sostenerse solo; úsalo como módulo o añade soportes.", "structure-off")
-    if settings["foldAngle"] > 90.0:
-        add("warn", "Ángulo de plegado", "Un ángulo mayor de 90° puede forzar los topes; revisa la holgura.", "fold-angle")
     return checks
 
 
@@ -1464,28 +1472,9 @@ def _wire_parts(parts: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _assemble(settings: dict[str, Any]) -> list[dict[str, Any]]:
-    parts: list[dict[str, Any]] = []
-    if settings["addBase"]:
-        _base(settings, parts)
-    panel_h = settings["backHeight"]
-    if settings["addRear"] and settings["backPanel"] != "none":
-        panel_h = _rear(settings, parts)
-    if settings["addFront"]:
-        _front(settings, parts)
-    _shelves(settings, parts)
-    if settings["addLocks"]:
-        _locks(settings, parts)
-    if settings["addRear"] and settings["backPanel"] != "none":
-        _hooks(settings, parts, panel_h)
-    _bins(settings, parts)
-    _price_tags(settings, parts)
-    _letters(settings, parts, panel_h)
-    _sign(settings, parts, panel_h)
-    _awning(settings, parts, panel_h)
-    _corners(settings, parts)
-    _dowels(settings, parts)
-    _transport(settings, parts)
-    return parts
+    from .foldable import build_parts
+
+    return build_parts(settings, _part)
 
 
 def _laser_preview_settings(settings: dict[str, Any]) -> dict[str, Any]:
@@ -1532,7 +1521,17 @@ def build(payload: dict[str, Any]) -> dict[str, Any]:
     grams = total_volume / 1000.0 * material["density"] * shell_factor
     height = max((part["bounds"]["max"][2] for part in wire), default=0.0)
     depth_open = settings["depth"]
-    folded_depth = settings["baseHeight"] + settings["panelThickness"] + 26.0 + settings["levels"] * 6.0
+    folded_low = [1e9, 1e9, 1e9]
+    folded_high = [-1e9, -1e9, -1e9]
+    for part in wire:
+        if part.get("fold_hide"):
+            continue
+        low, high = _matrix_bounds(part, "fold_matrix")
+        for index in range(3):
+            folded_low[index] = min(folded_low[index], low[index])
+            folded_high[index] = max(folded_high[index], high[index])
+    folded_depth = folded_high[1] - folded_low[1]
+    folded_height = folded_high[2] - folded_low[2]
     laser = None
     if settings["mode"] == "laser":
         from .laser import build_laser
@@ -1554,6 +1553,7 @@ def build(payload: dict[str, Any]) -> dict[str, Any]:
             "depth": depth_open,
             "height": max(height, settings["baseHeight"] + settings["backHeight"]),
             "foldedDepth": folded_depth,
+            "foldedHeight": folded_height,
             "levels": settings["levels"],
         },
         "laser": laser,
@@ -1593,6 +1593,18 @@ def export_3mf(payload: dict[str, Any]) -> dict[str, Any]:
     return {"ok": True, "data_b64": base64.b64encode(data).decode("ascii"), "name": "displaynian.3mf"}
 
 
+def _label_svg(settings: dict[str, Any]) -> str:
+    from xml.sax.saxutils import escape
+
+    text = escape(str(settings.get("signText") or "DISPLAYNIAN")[:24])
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="80mm" height="20mm" viewBox="0 0 80 20">'
+        '<rect width="80" height="20" fill="#ffffff"/>'
+        f'<text x="40" y="12.5" text-anchor="middle" font-family="sans-serif" font-size="6" fill="#111111">{text}</text>'
+        "</svg>"
+    )
+
+
 def export_stl_zip(payload: dict[str, Any]) -> dict[str, Any]:
     result = build(payload)
     buffer = io.BytesIO()
@@ -1603,6 +1615,7 @@ def export_stl_zip(payload: dict[str, Any]) -> dict[str, Any]:
         for part in result["parts"]:
             lines.append(f"{part['id']},{part['name'].replace(',', ' ')},1,{part['volume']:.1f},{part['triangles']}")
         archive.writestr("piezas.csv", "\n".join(lines) + "\n")
+        archive.writestr("cartel.svg", _label_svg(result["settings"]))
     return {"ok": True, "data_b64": base64.b64encode(buffer.getvalue()).decode("ascii"), "name": "displaynian-stl.zip"}
 
 

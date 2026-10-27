@@ -304,6 +304,21 @@ def matrix_rotate_x(angle_deg: float, pivot: Sequence[float] = (0, 0, 0)) -> np.
     )
 
 
+def matrix_rotate_y(angle_deg: float, pivot: Sequence[float] = (0, 0, 0)) -> np.ndarray:
+    a = math.radians(angle_deg)
+    c, s = math.cos(a), math.sin(a)
+    px, py, pz = pivot
+    return np.array(
+        [
+            [c, 0, s, px - c * px - s * pz],
+            [0, 1, 0, 0],
+            [-s, 0, c, pz + s * px - c * pz],
+            [0, 0, 0, 1],
+        ],
+        dtype=float,
+    )
+
+
 def matrix_translate(offset: Sequence[float]) -> np.ndarray:
     x, y, z = offset
     return np.array(

@@ -1,6 +1,6 @@
 # Displaynian
 
-**Versión 0.1.1** · Displays plegables, modulares y paramétricos para ferias, mercados y tiendas.
+**Versión 0.2.0** · Displays plegables, modulares y paramétricos para ferias, mercados y tiendas.
 
 Displaynian genera estructuras de exposición a partir de parámetros. El motor de geometría está escrito en **Python** y se ejecuta en el navegador con **Pyodide/WebAssembly**. El frontend usa **React + Three.js**. No hay servidor, no se suben archivos y no hace falta cuenta.
 
@@ -15,17 +15,18 @@ Displaynian no es un catálogo de modelos cerrados: es un generador. Cambias med
 
 ### Sistemas de partida
 
-- **Llaveros y colgantes** con panel SKÅDIS, ganchos, bandejas y portaprecios.
-- **Pegatinas, postales y tarjetas** con niveles profundos y labios.
-- **Joyería** con conos de anillos, tarjetas de pendientes, pulseras, collares, panal y panel de marca.
-- **Posavasos** con raíles, topes y cubierta de transporte.
-- **Marcapáginas** con insertos de cuatro compartimentos.
+- **Llaveros y colgantes** con bandejas de compartimentos, enlaces, pasadores y panel SKÅDIS.
+- **Pegatinas, postales y tarjetas** con bandejas amplias y poco profundas.
+- **Joyería** con insertos de anillos, pendientes, pulseras y collares.
+- **Posavasos** con raíles y topes.
+- **Marcapáginas** con divisores de cuatro compartimentos.
 - **Bolígrafos y herramientas** con inserto de seis huecos.
 - **Sistema mixto** para combinar todo.
+- **Wide 340 / Narrow 230** y **3/4/5 bandejas** como variantes rápidas.
 
 ### Todo es opcional y editable
 
-Puedes activar o desactivar base, marco trasero, marco delantero, bloqueos, panel, niveles, ganchos, bandejas, tapas, precios, letras, cartel, toldo, esquinas, clips, escuadras, topes, colgadores y transporte.
+Puedes activar o desactivar base, panel trasero, enlaces, uniones de panel, pies, tapa, asa, cartel y ganchos. Las bandejas se activan una a una y cada una tiene su inserto.
 
 Cada pieza generada se puede seleccionar en el visor y editar por separado:
 
@@ -36,36 +37,34 @@ Cada pieza generada se puede seleccionar en el visor y editar por separado:
 - Inserto y configuración de su nivel.
 - Orientación de impresión sugerida.
 
-Los niveles tienen altura, fondo, inclinación, labio e inserto independientes. Las esquinas y uniones tienen longitud, separación, radio y diámetro de tornillo configurables.
+La altura y el fondo de bandeja se controlan de forma global para que los enlaces y pasadores queden alineados. El cartel acepta una etiqueta de papel de 80 × 20 mm con el texto que escribas.
 
 ### Plegado y transporte
 
-- **Z-fold** con bandejas extraíbles y bloqueos de raíl.
-- **Acordeón nivelado** como variante experimental.
+- **Acordeón real** con cuatro enlaces por nivel y pasadores impresos.
 - Vistas **Abierto**, **Plegado**, **Transporte** y **Despiece**.
 - Animación de plegado con control manual.
-- Tapa, asa, bloqueos, lastre y ranuras para correas.
+- Tapa encajada sobre las bandejas y asa recortada.
 - Panel trasero SKÅDIS con ranuras de 5 × 15 mm, paso 40 mm y desfase 20 mm.
-- Ganchos SKÅDIS, ganchos para rejilla metálica y seguros de gancho.
-- Ganchos con paso y diámetro de alambre ajustables.
+- Ganchos SKÅDIS y de rejilla metálica.
+- Los enlaces se ocultan en la vista plegada para mostrar el paquete limpio.
 
 ### Modo 3D
 
+- Bandejas de **2,4 mm** de pared, divisoras de **1,8 mm**, enlaces de **4 mm** y pasadores de **4,2 mm**.
 - Perfiles de impresora A1 Mini, 220 genérica, A1/P1S/X1C, H2D/H2S y cama personalizada.
 - Materiales PLA, PETG y ASA.
-- Paredes, relleno, boquilla, capa y holgura.
-- Uniones por clip, pasadores, tornillos Chicago M5 o híbridas.
-- Avisos de cama, estabilidad, vuelco, capacidad de ganchos, panel sin dividir y fatiga de clips.
-- STL por pieza, 3MF montado y OBJ.
+- Avisos de cama, paredes finas, divisores, panel, estabilidad, enlaces y pasadores.
+- STL por pieza, 3MF montado, OBJ y etiqueta de cartel SVG.
 
 ### Modo láser
 
 - Materiales de 3 a 6 mm, espesor real y kerf configurables.
-- SVGs y DXF por hoja con capas de corte, grabado y marcado.
+- Flat-pack de bandejas/paneles con finger joints y encajes.
+- SVGs y DXF por hoja con capas de corte.
 - Nesting en hojas A4, A3, 600 × 400, 900 × 600 o personalizadas.
-- Finger joints, encajes, holgura, dogbones y compensación de kerf.
-- Bisagra viva opcional para chapa fina, con aviso de veta y espesor.
-- Kit impreso opcional con ganchos, insertos, accesorios y herrajes dentro del ZIP láser.
+- Galga de kerf y cupón de prueba de gancho SKÅDIS incluidos.
+- Cartel de papel y kit impreso opcional con enlaces, pasadores y ganchos.
 - Avisos de hoja, kerf, espesor real y bisagra.
 
 ### Interfaz
@@ -85,8 +84,9 @@ Los niveles tienen altura, fondo, inclinación, labio e inserto independientes. 
 displaynian/
   params.py       parámetros, presets y normalización
   mesh.py         mallas, extrusión, revolución, STL/3MF/OBJ
-  engine.py       estructura, niveles, ganchos, inserts, transporte y checks
-  laser.py        paneles 2D, encajes, bisagra viva, nesting, SVG y DXF
+  foldable.py     bandejas, enlaces, pasadores, panel y plegado acordeón
+  engine.py       parámetros de fabricación, checks, BOM y exportadores
+  laser.py        paneles 2D, cupones, signo, nesting, SVG y DXF
   webapi.py       puente JSON para Pyodide
 src/
   App.tsx         estado, modos, vistas, exportación
@@ -128,13 +128,15 @@ La app queda en `https://dhernandezgit.github.io/Displaynian-Tool/web/`.
 - Es un generador paramétrico, no una ingeniería certificada. Haz una **prueba de encaje** y una primera impresión/corte antes de producción.
 - Mide el espesor real del material y el kerf de tu máquina.
 - Para plegado frecuente usa PETG o ASA; el PLA puede fatigarse.
+- Imprime un enlace y un pasador de prueba antes del set completo.
+- Los enlaces se imprimen tumbados y los pasadores en vertical.
 - Los ganchos se imprimen de lado para que las capas recorran la dirección de carga.
 - La bisagra viva es fiable en chapa de 3–4 mm; para 6 mm usa el kit de bisagras impresas.
 - Revisa siempre el laminador: orientación, soportes, adhesión y temperatura.
 
 ## Inspiración
 
-La app está inspirada en la categoría de displays plegables de mercado de **RKDesignATDigital** y en sistemas como IKEA SKÅDIS, rejillas metálicas y stands láser flat-pack. La geometría, el código y los generadores son originales; no se han copiado archivos ni modelos del catálogo de referencia.
+La app está inspirada en la categoría de displays plegables de mercado de **RKDesignATDigital** y en sistemas como IKEA SKÅDIS, rejillas metálicas y stands láser flat-pack. También se estudió un SVG de ejemplo de rack plegable para entender sus variantes wide/narrow, 3/4 niveles, cartel, cupones y encajes; no se ha copiado su geometría. La geometría, el código y los generadores de Displaynian son originales.
 
 - SKÅDIS es una marca de Inter IKEA Systems B.V. Displaynian no está afiliado a IKEA.
 - Código: MIT.

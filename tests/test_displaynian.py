@@ -45,9 +45,14 @@ def test_default_3d_build_is_complete():
     result = engine.build({"settings": _settings()})
     assert result["ok"]
     assert result["mode"] == "3d"
-    assert len(result["parts"]) >= 40
+    assert 30 <= len(result["parts"]) <= 80
     assert result["dimensions"]["width"] == pytest.approx(220, abs=1)
-    assert result["dimensions"]["levels"] == 3
+    assert result["dimensions"]["levels"] == 4
+    tray = next(part for part in result["parts"] if part["id"] == "tray-1")
+    assert tray["dimensions"]["height"] == pytest.approx(38, abs=1)
+    assert result["dimensions"]["foldedHeight"] < result["dimensions"]["height"]
+    assert sum(1 for part in result["parts"] if part["id"].startswith("link-")) == 12
+    assert sum(1 for part in result["parts"] if part["id"].startswith("pin-")) == 24
     assert any(check["code"] == "bed-fit" for check in result["checks"])
     assert result["material_grams"] > 0
     assert result["bom"]
@@ -83,7 +88,7 @@ def test_all_structural_modules_can_be_disabled():
         }
     )
     assert result["ok"]
-    assert all(part["group"].startswith("shelf") or part["group"] in {"transport", "base"} for part in result["parts"])
+    assert all(part["group"].startswith("tray-") or part["group"] in {"transport", "base"} for part in result["parts"])
     assert any(check["code"] == "structure-off" for check in result["checks"])
 
 
@@ -186,9 +191,9 @@ def test_fold_matrices_are_finite_and_different():
 
 def test_skadis_slot_grid_has_expected_pitch():
     result = engine.build({"settings": _settings(backPanel="skadis", panelSplit=1)})
-    panel = next(part for part in result["parts"] if part["group"] == "rear" and "Panel" in part["name"])
+    panel = next(part for part in result["parts"] if part["group"] == "panel" and "Panel" in part["name"])
     assert panel["dimensions"]["width"] > 150
-    assert panel["dimensions"]["height"] > 150
+    assert panel["dimensions"]["height"] > 100
 
 
 def test_box_mesh_is_closed():
@@ -208,3 +213,21 @@ def test_extrusion_supports_holes():
     mesh = extrude_polygon(outer.difference(hole), 0, 5)
     assert mesh.volume() > 0
     assert mesh.bounds["max"][2] == pytest.approx(5)
+
+
+def test_sign_and_laser_test_coupons():
+    result = engine.build({"settings": _settings(sign=True, signText="MI MARCA")})
+    assert any(part["id"] == "sign" for part in result["parts"])
+    laser = engine.build({"settings": _settings(mode="laser", testCoupons=True, sign=True)})
+    names = [name for sheet in laser["laser"]["sheets"] for name in sheet["parts"]]
+    assert any("Prueba de gancho" in name for name in names)
+    assert any("Galga de kerf" in name for name in names)
+    assert any("Cartel" in name for name in names)
+
+
+def test_wide_and_narrow_variants_build():
+    for width in (230, 340):
+        result = engine.build({"settings": _settings(width=width, panelSplit=2 if width > 256 else 1)})
+        assert result["ok"]
+        assert result["parts"]
+        assert result["dimensions"]["width"] == pytest.approx(width)

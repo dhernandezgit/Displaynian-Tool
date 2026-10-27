@@ -19,10 +19,21 @@ export default function StatusBar({
       <span className="status-spacer" />
       {build ? (
         <>
-          <span>{build.parts.length} piezas</span>
+          {build.laser ? (
+            <>
+              <span>{build.laser.sheets.length} hojas</span>
+              <span>{build.laser.sheets.reduce((total, sheet) => total + sheet.parts.length, 0)} piezas</span>
+              <span>{build.laser.thickness} mm · kerf {build.laser.kerf.toFixed(2)}</span>
+            </>
+          ) : (
+            <>
+              <span>{build.parts.length} piezas</span>
+              <span>{build.dimensions.width.toFixed(0)} × {build.dimensions.depth.toFixed(0)} × {build.dimensions.height.toFixed(0)} mm</span>
+              <span>plegado {(build.dimensions.foldedHeight / 10).toFixed(1)} cm</span>
+              <span>{build.material_grams >= 1000 ? `${(build.material_grams / 1000).toFixed(2)} kg` : `${build.material_grams.toFixed(0)} g`}</span>
+            </>
+          )}
           <span>{build.build_ms.toFixed(0)} ms</span>
-          <span>{build.dimensions.width.toFixed(0)} × {build.dimensions.depth.toFixed(0)} × {build.dimensions.height.toFixed(0)} mm</span>
-          <span>{build.material_grams >= 1000 ? `${(build.material_grams / 1000).toFixed(2)} kg` : `${build.material_grams.toFixed(0)} g`}</span>
         </>
       ) : null}
       <span>v{build?.version || "0.1.0"}</span>

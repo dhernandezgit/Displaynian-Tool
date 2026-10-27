@@ -1,66 +1,38 @@
 import {
   Anchor,
-  BookMarked,
   Cable,
-  CircleDot,
-  CircleStop,
-  CornerDownRight,
+  FoldHorizontal,
   Footprints,
-  Gem,
   Hand,
-  Image,
-  KeyRound,
-  LayoutGrid,
   Layers,
+  Link,
   Link2,
   LockKeyhole,
   Luggage,
   Package,
-  PanelLeft,
   PanelRight,
-  PenTool,
   Signpost,
   Square,
-  Sticker,
-  Store,
-  Tag,
-  Triangle,
-  Type,
-  Weight,
 } from "lucide-react";
 import type { AppSettings } from "../types";
 import { CATALOG, CATALOG_GROUPS, INSERT_OPTIONS } from "../lib/defaults";
-import { NumberField, Section, SelectField, Stepper, Toggle } from "./Field";
+import { NumberField, Section, SelectField, Stepper } from "./Field";
 
 const ICONS: Record<string, typeof Square> = {
-  KeyRound,
-  Sticker,
-  Gem,
-  CircleDot,
-  BookMarked,
-  PenTool,
-  LayoutGrid,
   Square,
   PanelRight,
-  PanelLeft,
-  LockKeyhole,
-  CornerDownRight,
   Link2,
-  Triangle,
-  CircleStop,
-  Image,
+  Link,
+  Footprints,
   Anchor,
   Package,
-  Tag,
-  Type,
-  Signpost,
-  Store,
+  LockKeyhole,
+  FoldHorizontal,
   Luggage,
   Hand,
-  Weight,
   Cable,
-  Footprints,
   Layers,
+  Signpost,
 };
 
 export default function CatalogPanel({
@@ -123,8 +95,8 @@ export default function CatalogPanel({
                   onChange={(value) => onPatch({ hookType: value })}
                 />
                 <div className="two-col">
-                  <NumberField label="Largo de gancho" value={settings.hookLength} min={12} max={100} step={1} onChange={(value) => onPatch({ hookLength: value })} />
-                  <NumberField label="Filas de ganchos" value={settings.hookRows} min={1} max={6} step={1} unit="" onChange={(value) => onPatch({ hookRows: value })} />
+                  <NumberField label="Largo de gancho" value={settings.hookLength} min={18} max={80} step={1} onChange={(value) => onPatch({ hookLength: value })} />
+                  <NumberField label="Filas de ganchos" value={settings.hookRows} min={1} max={5} step={1} unit="" onChange={(value) => onPatch({ hookRows: value })} />
                 </div>
                 {settings.hookType !== "skadis" ? (
                   <div className="two-col">
@@ -132,26 +104,13 @@ export default function CatalogPanel({
                     <NumberField label="Alambre" value={settings.wireDiameter} min={1} max={10} step={0.1} onChange={(value) => onPatch({ wireDiameter: value })} />
                   </div>
                 ) : null}
-                <Toggle label="Seguros de gancho" checked={settings.hookLocks} onChange={(value) => onPatch({ hookLocks: value })} />
-                <Toggle label="Tapas de bandeja" checked={settings.binLids} onChange={(value) => onPatch({ binLids: value })} />
-                <Toggle label="Tapa de transporte" checked={settings.transportLid} onChange={(value) => onPatch({ transportLid: value })} />
-                <Toggle label="Asa de transporte" checked={settings.transportHandle} onChange={(value) => onPatch({ transportHandle: value })} />
                 <SelectField
                   label="Inserto rápido"
                   value={settings.insert}
                   options={INSERT_OPTIONS}
                   onChange={(value) => onPatch({ insert: value })}
-                  hint="Se aplica al nivel 1 desde Diseño"
+                  hint="Se aplica al nivel 1"
                 />
-                <label className="field">
-                  <span className="field-label"><span>Texto de letras y cartel</span><small>Hasta 24 caracteres</small></span>
-                  <input
-                    className="text-input"
-                    value={settings.letterText}
-                    maxLength={24}
-                    onChange={(event) => onPatch({ letterText: event.target.value.toUpperCase() })}
-                  />
-                </label>
               </div>
             ) : null}
           </Section>

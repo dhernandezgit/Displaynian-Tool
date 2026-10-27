@@ -24,13 +24,14 @@ function checkIcon(level: string) {
 }
 
 function printHint(category: string): string {
-  if (category === "hook") return "Orientación recomendada: imprimir de lado, con las capas recorriendo el gancho.";
-  if (category === "shelf") return "Orientación recomendada: cara inferior sobre la cama, sin soportes.";
-  if (category === "panel") return "Orientación recomendada: en plano; divide el panel si supera la cama.";
-  if (category === "insert") return "Orientación recomendada: base plana; los conos y cilindros se imprimen verticales.";
-  if (category === "transport") return "Orientación recomendada: boca abajo para la tapa; asa de pie.";
-  if (category === "accessory") return "Orientación recomendada: apoyar la cara posterior en la cama.";
-  return "Orientación recomendada: apoyar la cara más grande en la cama y revisar overhangs.";
+  if (category === "joint") return "Enlaces: imprimir tumbados, 4 mm de grosor, sin soportes. El pasador va aparte.";
+  if (category === "hook") return "Ganchos: imprimir de lado, con las capas recorriendo el brazo.";
+  if (category === "shelf") return "Bandejas: base en la cama, paredes de 2,4 mm y sin soportes.";
+  if (category === "panel") return "Panel: 3 mm, en plano. Divide en filas/columnas si supera la cama.";
+  if (category === "insert") return "Insertos: base plana; conos y cilindros en vertical.";
+  if (category === "transport") return "Tapa: boca abajo; el hueco del asa no necesita soportes.";
+  if (category === "hardware") return "Pasadores: verticales, cabeza en la cama. Pies: en plano.";
+  return "Apoya la cara más grande en la cama y revisa los voladizos.";
 }
 
 export default function PartInspector({
@@ -46,7 +47,8 @@ export default function PartInspector({
   onSelect: (id: string | null) => void;
   onPatch: (patch: Partial<AppSettings>) => void;
 }) {
-  const selected: BuildPart | null = build?.parts.find((part) => part.id === selectedId) || null;
+  const selected: BuildPart | null = build?.laser ? null : build?.parts.find((part) => part.id === selectedId) || null;
+  const laser = build?.laser;
   const groups = new Map<string, BuildPart[]>();
   for (const part of build?.parts || []) {
     const list = groups.get(part.group) || [];
@@ -79,7 +81,25 @@ export default function PartInspector({
 
   return (
     <div className="inspector">
-      {selected ? (
+      {laser ? (
+        <section className="inspector-card">
+          <div className="inspector-title">
+            <span className="inspector-icon"><Layers size={18} /></span>
+            <div>
+              <small>Corte láser</small>
+              <h3>{laser.sheets.length} hoja(s) · {laser.thickness} mm</h3>
+            </div>
+          </div>
+          <div className="summary-grid">
+            <div><b>{laser.sheets.length}</b><span>hojas</span></div>
+            <div><b>{laser.sheets.reduce((total, sheet) => total + sheet.parts.length, 0)}</b><span>piezas</span></div>
+            <div><b>{laser.kerf.toFixed(2)}</b><span>mm kerf</span></div>
+            <div><b>{laser.printedKit ? "Sí" : "No"}</b><span>kit 3D</span></div>
+          </div>
+          <p className="panel-note">Las láminas son el flat-pack de corte. Los enlaces y pasadores del modo 3D se incluyen como kit impreso opcional.</p>
+          {laser.overflow.length ? <p className="panel-note">No caben: {laser.overflow.join(", ")}</p> : null}
+        </section>
+      ) : selected ? (
         <section className="inspector-card selected-part">
           <div className="inspector-title">
             <span className="part-swatch" style={{ background: selected.color }} />
@@ -127,7 +147,7 @@ export default function PartInspector({
           </div>
           <p className="panel-note">{printHint(selected.category)}</p>
         </section>
-      ) : (
+      ) : !laser ? (
         <section className="inspector-card">
           <div className="inspector-title">
             <span className="inspector-icon"><ShieldAlert size={18} /></span>
@@ -140,13 +160,13 @@ export default function PartInspector({
             <div className="summary-grid">
               <div><b>{build.parts.length}</b><span>piezas</span></div>
               <div><b>{build.dimensions.levels}</b><span>niveles</span></div>
-              <div><b>{build.dimensions.foldedDepth.toFixed(0)}</b><span>mm plegado</span></div>
+              <div><b>{(build.dimensions.foldedHeight / 10).toFixed(1)}</b><span>cm plegado</span></div>
               <div><b>{build.material_grams >= 1000 ? `${(build.material_grams / 1000).toFixed(1)} kg` : `${build.material_grams.toFixed(0)} g`}</b><span>material</span></div>
             </div>
           ) : null}
           <p className="panel-note">Haz clic en cualquier pieza del visor o de la lista para editarla por separado.</p>
         </section>
-      )}
+      ) : null}
 
       {build ? (
         <section className="inspector-card">
@@ -165,7 +185,7 @@ export default function PartInspector({
         </section>
       ) : null}
 
-      <section className="inspector-card parts-card">
+      {!laser ? <section className="inspector-card parts-card">
         <div className="card-head">
           <strong>Piezas generadas</strong>
           <span className="badge">{build?.parts.length || 0}</span>
@@ -191,9 +211,9 @@ export default function PartInspector({
             </div>
           ))}
         </div>
-      </section>
+      </section> : null}
 
-      {build && build.bom.length ? (
+      {!laser && build && build.bom.length ? (
         <section className="inspector-card">
           <div className="card-head"><strong>Material adicional</strong><span className="badge">{build.bom.length}</span></div>
           <div className="bom-list">

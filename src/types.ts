@@ -37,9 +37,16 @@ export interface AppSettings {
   shelfThickness: number;
   lipHeight: number;
   lipThickness: number;
+  dividerSpacing: number;
+  dividerThickness: number;
+  trayRadius: number;
+  frontLipRatio: number;
+  pinDiameter: number;
+  lidHeight: number;
   backPanel: string;
   backHeight: number;
   panelSplit: number;
+  panelRows: number;
   panelMargin: number;
   foldMode: string;
   foldAngle: number;
@@ -74,6 +81,8 @@ export interface AppSettings {
   letters: number;
   letterText: string;
   sign: boolean;
+  signText: string;
+  testCoupons: boolean;
   awning: boolean;
   accessoryTray: boolean;
   insert: string;
@@ -130,6 +139,7 @@ export interface BuildPart {
   open_matrix: number[];
   fold_matrix: number[];
   transport_only: boolean;
+  fold_hide?: boolean;
   explode: number[];
 }
 
@@ -180,6 +190,7 @@ export interface BuildResult {
     depth: number;
     height: number;
     foldedDepth: number;
+    foldedHeight: number;
     levels: number;
   };
   laser?: LaserResult;

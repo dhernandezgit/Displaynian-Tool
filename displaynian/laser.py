@@ -132,14 +132,20 @@ def _panel_parts(settings: dict[str, Any]) -> list[dict[str, Any]]:
     parts.append({"id": "laser-side-a", "name": "Lateral A", "layer": "cut", "polygons": [side_profile]})
     parts.append({"id": "laser-side-b", "name": "Lateral B", "layer": "cut", "polygons": [affinity.scale(side_profile, xfact=-1, yfact=1, origin=(depth / 2, 0))]})
 
-    back_poly = rounded_rect(width - 2 * side, back_h, 3.0)
-    back_holes: list[Polygon] = []
-    if settings["backPanel"] == "skadis":
-        back_holes = _skadis_slots(width - 2 * side, back_h)
-    elif settings["backPanel"] == "honeycomb":
-        back_holes = _honeycomb(width - 2 * side, back_h)
-    back_poly = _apply_holes(back_poly, back_holes)
-    parts.append({"id": "laser-back", "name": "Panel trasero", "layer": "cut", "polygons": [back_poly]})
+    panel_cols = max(1, int(settings.get("panelSplit", 1)))
+    panel_rows = max(1, int(settings.get("panelRows", 2)))
+    piece_w = (width - 2 * side - 3.0 * (panel_cols - 1)) / panel_cols
+    piece_h = (back_h - 3.0 * (panel_rows - 1)) / panel_rows
+    for row in range(panel_rows):
+        for col in range(panel_cols):
+            back_poly = rounded_rect(piece_w, piece_h, 3.0)
+            back_holes: list[Polygon] = []
+            if settings["backPanel"] == "skadis":
+                back_holes = _skadis_slots(piece_w, piece_h)
+            elif settings["backPanel"] == "honeycomb":
+                back_holes = _honeycomb(piece_w, piece_h)
+            back_poly = _apply_holes(back_poly, back_holes)
+            parts.append({"id": f"laser-back-{row + 1}-{col + 1}", "name": f"Panel {row + 1}.{col + 1}", "layer": "cut", "polygons": [back_poly]})
 
     for index, level in enumerate(levels):
         shelf_w = width
@@ -191,8 +197,31 @@ def _panel_parts(settings: dict[str, Any]) -> list[dict[str, Any]]:
             ("laser-lid-left", _rect(0, 0, lid_d, rim)),
             ("laser-lid-right", _rect(0, 0, lid_d, rim)),
         ]
+        lid_names = {
+            "laser-lid-front": "Tapa · frente",
+            "laser-lid-back": "Tapa · trasera",
+            "laser-lid-left": "Tapa · lateral izq.",
+            "laser-lid-right": "Tapa · lateral der.",
+        }
         for part_id, poly in strips:
-            parts.append({"id": part_id, "name": part_id.replace("-", " ").title(), "layer": "cut", "polygons": [poly]})
+            parts.append({"id": part_id, "name": lid_names.get(part_id, part_id), "layer": "cut", "polygons": [poly]})
+
+    if settings.get("sign"):
+        sign = _rect(0, 0, 104.0, 42.0, 6.0)
+        sign = _apply_holes(sign, [_rect(12.0, 11.0, 80.0, 20.0, 3.0)])
+        parts.append({"id": "laser-sign", "name": "Cartel de papel", "layer": "cut", "polygons": [sign]})
+
+    if settings.get("testCoupons", True):
+        hook = _rect(0, 0, 104.0, 56.0, 4.0)
+        hook = _apply_holes(hook, [_slot(32.0, 28.0, 5.0, 15.0), _slot(72.0, 28.0, 5.0, 15.0)])
+        parts.append({"id": "laser-hook-test", "name": "Prueba de gancho SKÅDIS", "layer": "cut", "polygons": [hook]})
+        kerf = _rect(0, 0, 150.0, 34.0, 3.0)
+        slots = []
+        for index in range(5):
+            slot_w = settings["laserThickness"] - 0.2 + index * 0.1
+            slots.append(_rect(10.0 + index * 27.0, 8.0, slot_w, 18.0, 0.5))
+        kerf = _apply_holes(kerf, slots)
+        parts.append({"id": "laser-kerf-test", "name": "Galga de kerf y encaje", "layer": "cut", "polygons": [kerf]})
 
     if settings["livingHinge"]:
         hinge_h = max(18.0, settings["hingeRows"] * settings["hingeRowSpacing"] + 10.0)

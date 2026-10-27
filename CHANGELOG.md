@@ -1,6 +1,38 @@
 # Changelog
 
+## 0.2.0 — 2026-10-27
+
+Rediseño completo de la geometría 3D y del modo láser.
+
+### Geometría 3D
+
+- Bandejas finas de 2,4 mm con compartimentos y divisores de 1,8 mm.
+- Enlaces de plegado de 4 mm con ranura y bloqueo.
+- Pasadores impresos de 4,2 mm como unión real, sin tornillos.
+- Plegado acordeón con cuatro enlaces por nivel.
+- Panel trasero SKÅDIS de 3 mm, rail inferior y clips superiores.
+- Tapa de transporte con asa y paquete plegado compacto.
+- Variantes Wide 340 / Narrow 230 y 3/4/5 bandejas.
+- Cartel opcional con etiqueta de papel de 80 × 20 mm.
+
+### Modo láser
+
+- Flat-pack de bandejas/paneles con finger joints.
+- Cupón de prueba de gancho SKÅDIS.
+- Galga de kerf y encaje.
+- Cartel de papel y kit impreso opcional.
+- Panel dividido por filas y columnas.
+
+### Interfaz y calidad
+
+- Catálogo reducido a las piezas reales del sistema.
+- Inspector por pieza con orientación de impresión.
+- Preflight de paredes, divisores, panel, enlaces y pasadores.
+- BOM de enlaces, pasadores, bandejas, paneles y tapa.
+- 23 tests, typecheck y build.
+
 ## 0.1.1 — 2026-10-27
+
 
 ### Añadido
 

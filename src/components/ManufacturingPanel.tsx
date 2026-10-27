@@ -1,4 +1,4 @@
-import { CircleGauge, Cog, Flame, HardDrive, Printer, Ruler, Scissors, ShieldCheck } from "lucide-react";
+import { Flame, HardDrive, Layers, Printer, Ruler, Scissors, ShieldCheck } from "lucide-react";
 import type { AppSettings } from "../types";
 import { LASER_MATERIALS, MATERIALS, SHEETS } from "../lib/defaults";
 import { NumberField, Section, SelectField, Toggle } from "./Field";
@@ -18,45 +18,18 @@ export default function ManufacturingPanel({
             <SelectField label="Material" value={settings.material} options={MATERIALS.map((item) => ({ value: item.id, label: item.label }))} onChange={(value) => onPatch({ material: value })} />
             <NumberField label="Boquilla" value={settings.nozzle} min={0.2} max={1.2} step={0.05} onChange={(value) => onPatch({ nozzle: value })} />
             <NumberField label="Altura de capa" value={settings.layerHeight} min={0.08} max={0.6} step={0.02} onChange={(value) => onPatch({ layerHeight: value })} />
-            <NumberField label="Paredes" value={settings.walls} min={1} max={12} step={1} unit="" onChange={(value) => onPatch({ walls: value })} />
-            <NumberField label="Relleno" value={settings.infill} min={0} max={100} step={1} unit="%" onChange={(value) => onPatch({ infill: value })} />
-            <NumberField label="Holgura de encaje" value={settings.clearance} min={0.05} max={1} step={0.01} onChange={(value) => onPatch({ clearance: value })} />
+            <NumberField label="Paredes" value={settings.walls} min={1} max={8} step={1} unit="" onChange={(value) => onPatch({ walls: value })} />
+            <NumberField label="Relleno" value={settings.infill} min={0} max={60} step={1} unit="%" onChange={(value) => onPatch({ infill: value })} />
+            <NumberField label="Holgura de encaje" value={settings.clearance} min={0.1} max={0.8} step={0.01} onChange={(value) => onPatch({ clearance: value })} hint="Pasador y bandeja" />
           </Section>
-          <Section title="Uniones" subtitle="Pivotes, pasadores y clips" icon={<Cog size={15} />} defaultOpen>
-            <SelectField
-              label="Sistema de unión"
-              value={settings.joinery}
-              options={[
-                { value: "snap", label: "Clip impreso" },
-                { value: "dowel", label: "Pasadores impresos" },
-                { value: "chicago", label: "Tornillos Chicago M5" },
-                { value: "hybrid", label: "Híbrido (recomendado)" },
-              ]}
-              onChange={(value) => onPatch({ joinery: value })}
-            />
-            <Toggle label="Escuadras de esquina" checked={settings.cornerBrackets} onChange={(value) => onPatch({ cornerBrackets: value })} />
-            <NumberField label="Longitud de escuadra" value={settings.cornerLeg} min={12} max={90} step={1} onChange={(value) => onPatch({ cornerLeg: value })} />
-            <NumberField label="Separación de esquina" value={settings.cornerInset} min={6} max={80} step={1} onChange={(value) => onPatch({ cornerInset: value })} />
-            <NumberField label="Tornillo de esquina" value={settings.cornerScrew} min={1} max={10} step={0.1} onChange={(value) => onPatch({ cornerScrew: value })} hint="Diámetro del agujero" />
-            <SelectField
-              label="Tipo de esquina"
-              value={settings.cornerType}
-              options={[
-                { value: "l", label: "Escuadra en L" },
-                { value: "u", label: "Clip en U" },
-                { value: "flat", label: "Placa plana 4 tornillos" },
-                { value: "tri", label: "Cartela triangular" },
-              ]}
-              onChange={(value) => onPatch({ cornerType: value })}
-            />
-            <Toggle label="Clips de unión de panel" checked={settings.panelJoiners} onChange={(value) => onPatch({ panelJoiners: value })} />
-            <Toggle label="Escuadras de bandeja" checked={settings.shelfBrackets} onChange={(value) => onPatch({ shelfBrackets: value })} />
-            <Toggle label="Topes de raíl" checked={settings.railEnds} onChange={(value) => onPatch({ railEnds: value })} />
-            <Toggle label="Colgadores de pared" checked={settings.wallMounts} onChange={(value) => onPatch({ wallMounts: value })} />
+          <Section title="Uniones" subtitle="Todo el sistema usa pasadores" icon={<Layers size={15} />} defaultOpen>
+            <NumberField label="Diámetro de pasador" value={settings.pinDiameter} min={2.5} max={8} step={0.1} onChange={(value) => onPatch({ pinDiameter: value })} />
+            <NumberField label="Grosor de enlace" value={settings.sideThickness} min={2} max={8} step={0.5} onChange={(value) => onPatch({ sideThickness: value })} />
+            <NumberField label="Ancho de enlace" value={settings.postDepth} min={18} max={50} step={1} onChange={(value) => onPatch({ postDepth: value })} />
+            <p className="panel-note">Los enlaces se imprimen planos y los pasadores en vertical. Imprime una unidad de prueba antes del set completo.</p>
           </Section>
-          <Section title="Robustez" subtitle="Cargas y estabilidad" icon={<ShieldCheck size={15} />}>
-            <NumberField label="Lastre estimado" value={Math.round(settings.width * settings.depth * 0.0007)} min={0} max={5000} step={10} unit="g" onChange={() => undefined} hint="Referencia para llenar el hueco" />
-            <Toggle label="Apilable plegado" checked={settings.stackable} onChange={(value) => onPatch({ stackable: value })} />
+          <Section title="Consejos de impresión" subtitle="Sin soportes y con paredes finas" icon={<ShieldCheck size={15} />}>
+            <p className="panel-note">Bandejas de 2,4 mm, divisores de 1,8 mm y enlaces de 4 mm. Imprime las bandejas con la base en la cama y los enlaces tumbados. Usa PLA para interiores o PETG si vas a plegar muchas veces.</p>
           </Section>
         </>
       ) : (
@@ -77,6 +50,7 @@ export default function ManufacturingPanel({
             <NumberField label="Ancho de dedo" value={settings.fingerWidth} min={3} max={30} step={1} onChange={(value) => onPatch({ fingerWidth: value })} />
             <NumberField label="Holgura de encaje" value={settings.fingerClearance} min={0} max={0.6} step={0.01} onChange={(value) => onPatch({ fingerClearance: value })} />
             <NumberField label="Dogbone" value={settings.dogbone} min={0} max={12} step={0.5} onChange={(value) => onPatch({ dogbone: value })} />
+            <Toggle label="Cupones de prueba" hint="Gancho SKÅDIS y galga de kerf" checked={settings.testCoupons} onChange={(value) => onPatch({ testCoupons: value })} />
           </Section>
           <Section title="Hoja de corte" subtitle="Nesting y tamaño" icon={<Ruler size={15} />} defaultOpen>
             <SelectField
@@ -109,14 +83,11 @@ export default function ManufacturingPanel({
             <NumberField label="Separación de filas" value={settings.hingeRowSpacing} min={1} max={10} step={0.1} onChange={(value) => onPatch({ hingeRowSpacing: value })} />
           </Section>
           <Section title="Kit impreso" subtitle="Complementos para el display láser" icon={<HardDrive size={15} />}>
-            <Toggle label="Incluir kit de bisagras/ganchos" checked={settings.includePrintedKit} onChange={(value) => onPatch({ includePrintedKit: value })} />
-            <p className="panel-note">Si activas el kit, el ZIP láser incluirá también las piezas 3D necesarias para bisagras, ganchos y topes.</p>
+            <Toggle label="Incluir kit de enlaces/ganchos" checked={settings.includePrintedKit} onChange={(value) => onPatch({ includePrintedKit: value })} />
+            <p className="panel-note">Si activas el kit, el ZIP láser incluirá también los enlaces, pasadores y ganchos 3D.</p>
           </Section>
         </>
       )}
-      <Section title="Estimación" subtitle="Filamento, tiempo y coste" icon={<CircleGauge size={15} />}>
-        <p className="panel-note">La estimación se actualiza con la geometría. El laminador y la máquina tienen la última palabra.</p>
-      </Section>
     </div>
   );
 }

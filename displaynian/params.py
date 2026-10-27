@@ -7,107 +7,107 @@ from typing import Any
 SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
     "keychain": {
         "label": "Llaveros y colgantes",
-        "description": "Display plegable con panel SKÅDIS, ganchos y bandejas para llaveros, pines y clickers.",
+        "description": "Bandejas finas con compartimentos, enlaces plegables y panel SKÅDIS.",
         "width": 220.0,
-        "depth": 220.0,
-        "levels": 3,
-        "levelSpacing": 64.0,
-        "shelfDepth": 158.0,
+        "depth": 190.0,
+        "levels": 4,
+        "levelSpacing": 58.0,
+        "shelfDepth": 160.0,
         "backPanel": "skadis",
-        "hooks": 8,
-        "bins": 2,
-        "priceTags": 4,
+        "hooks": 3,
+        "bins": 0,
+        "priceTags": 0,
         "letters": 0,
         "transport": True,
     },
     "stickers": {
         "label": "Pegatinas, postales y tarjetas",
-        "description": "Niveles escalonados y profundos para producto plano, con labio frontal y separadores.",
+        "description": "Bandejas amplias y poco profundas para producto plano.",
         "width": 220.0,
-        "depth": 220.0,
-        "levels": 3,
-        "levelSpacing": 64.0,
-        "shelfDepth": 168.0,
+        "depth": 190.0,
+        "levels": 4,
+        "levelSpacing": 58.0,
+        "shelfDepth": 166.0,
         "backPanel": "plain",
         "hooks": 0,
         "bins": 0,
-        "priceTags": 6,
+        "priceTags": 0,
         "letters": 0,
         "transport": True,
     },
     "jewelry": {
         "label": "Joyería",
-        "description": "Marco modular con inserts de anillos, pendientes, pulseras y collares.",
+        "description": "Bandejas con insertos de anillos, pendientes, pulseras y collares.",
         "width": 220.0,
-        "depth": 220.0,
-        "levels": 3,
-        "levelSpacing": 70.0,
-        "shelfDepth": 165.0,
+        "depth": 190.0,
+        "levels": 4,
+        "levelSpacing": 58.0,
+        "shelfDepth": 160.0,
         "backPanel": "honeycomb",
-        "hooks": 6,
+        "hooks": 3,
         "bins": 0,
-        "priceTags": 4,
+        "priceTags": 0,
         "letters": 0,
         "transport": True,
     },
     "coasters": {
         "label": "Posavasos",
-        "description": "Niveles con raíles y tope para posavasos; tapa de transporte incluida.",
+        "description": "Bandejas con raíles y topes para posavasos.",
         "width": 220.0,
-        "depth": 210.0,
+        "depth": 190.0,
         "levels": 3,
-        "levelSpacing": 66.0,
-        "shelfDepth": 160.0,
+        "levelSpacing": 62.0,
+        "shelfDepth": 166.0,
         "backPanel": "plain",
         "hooks": 0,
         "bins": 0,
-        "priceTags": 2,
+        "priceTags": 0,
         "letters": 0,
         "transport": True,
     },
     "bookmarks": {
-        "label": "Marcapáginas y libros",
-        "description": "Inserts de 4 compartimentos y niveles de poca altura para marcapáginas.",
+        "label": "Marcapáginas",
+        "description": "Bandejas con divisores de cuatro compartimentos.",
         "width": 220.0,
-        "depth": 210.0,
-        "levels": 3,
-        "levelSpacing": 66.0,
-        "shelfDepth": 155.0,
+        "depth": 190.0,
+        "levels": 4,
+        "levelSpacing": 56.0,
+        "shelfDepth": 158.0,
         "backPanel": "plain",
         "hooks": 2,
         "bins": 0,
-        "priceTags": 3,
+        "priceTags": 0,
         "letters": 0,
         "transport": True,
     },
     "pens": {
-        "label": "Bolígrafos y herramientas",
-        "description": "Insertos de 6 bolígrafos, bandejas y ganchos para producto pequeño.",
+        "label": "Bolígrafos",
+        "description": "Bandejas con inserto de seis bolígrafos.",
         "width": 220.0,
-        "depth": 210.0,
+        "depth": 190.0,
         "levels": 3,
-        "levelSpacing": 70.0,
+        "levelSpacing": 62.0,
         "shelfDepth": 160.0,
         "backPanel": "skadis",
-        "hooks": 6,
-        "bins": 1,
-        "priceTags": 2,
+        "hooks": 3,
+        "bins": 0,
+        "priceTags": 0,
         "letters": 0,
         "transport": True,
     },
     "mixed": {
         "label": "Sistema mixto",
-        "description": "Combina niveles, inserts, panel, ganchos y accesorios libremente.",
-        "width": 230.0,
-        "depth": 220.0,
-        "levels": 3,
-        "levelSpacing": 64.0,
-        "shelfDepth": 165.0,
+        "description": "Combina bandejas, insertos, panel y ganchos.",
+        "width": 220.0,
+        "depth": 190.0,
+        "levels": 4,
+        "levelSpacing": 58.0,
+        "shelfDepth": 160.0,
         "backPanel": "skadis",
-        "hooks": 8,
-        "bins": 2,
-        "priceTags": 4,
-        "letters": 4,
+        "hooks": 3,
+        "bins": 0,
+        "priceTags": 0,
+        "letters": 0,
         "transport": True,
     },
 }
@@ -162,7 +162,7 @@ INSERT_TYPES = [
 BACK_PANEL_TYPES = ["none", "plain", "skadis", "honeycomb", "branding"]
 SHELF_TYPES = ["flat", "sloped", "pegboard", "rail"]
 HOOK_TYPES = ["skadis", "wire", "combo"]
-JOINERY_TYPES = ["snap", "dowel", "chicago", "hybrid"]
+JOINERY_TYPES = ["pin", "snap", "chicago", "hybrid"]
 FOLD_MODES = ["zfold", "accordion"]
 
 DEFAULT_SETTINGS: dict[str, Any] = {
@@ -170,57 +170,64 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "mode": "3d",
     "system": "keychain",
     "width": 220.0,
-    "depth": 220.0,
-    "levels": 3,
-    "levelSpacing": 64.0,
-    "shelfDepth": 158.0,
-    "shelfTaper": 0.9,
+    "depth": 190.0,
+    "levels": 4,
+    "levelSpacing": 58.0,
+    "shelfDepth": 160.0,
+    "shelfTaper": 1.0,
     "addBase": True,
     "addRear": True,
     "addFront": True,
     "addLocks": True,
-    "baseHeight": 8.0,
-    "baseRadius": 8.0,
-    "sideThickness": 10.0,
-    "postDepth": 26.0,
-    "panelThickness": 6.0,
-    "shelfThickness": 6.0,
-    "lipHeight": 12.0,
-    "lipThickness": 3.0,
+    "baseHeight": 4.0,
+    "baseRadius": 6.0,
+    "sideThickness": 4.0,
+    "postDepth": 30.0,
+    "panelThickness": 3.0,
+    "shelfThickness": 2.4,
+    "lipHeight": 38.0,
+    "lipThickness": 2.4,
+    "dividerSpacing": 38.0,
+    "dividerThickness": 1.8,
+    "trayRadius": 3.0,
+    "frontLipRatio": 0.72,
+    "pinDiameter": 4.2,
+    "lidHeight": 42.0,
     "backPanel": "skadis",
     "backHeight": 0.0,
     "panelSplit": 1,
-    "panelMargin": 18.0,
+    "panelRows": 2,
+    "panelMargin": 8.0,
     "foldMode": "zfold",
-    "foldAngle": 82.0,
+    "foldAngle": 68.0,
     "transport": True,
     "transportLid": True,
     "transportHandle": True,
     "stackable": True,
-    "ballast": True,
-    "strapSlots": True,
+    "ballast": False,
+    "strapSlots": False,
     "feet": True,
-    "cornerBrackets": True,
+    "cornerBrackets": False,
     "cornerInset": 22.0,
     "cornerLeg": 34.0,
     "cornerRadius": 7.0,
     "cornerScrew": 3.2,
     "cornerType": "l",
     "panelJoiners": True,
-    "shelfBrackets": True,
-    "railEnds": True,
+    "shelfBrackets": False,
+    "railEnds": False,
     "wallMounts": False,
-    "hooks": 8,
+    "hooks": 3,
     "hookType": "skadis",
     "hookLength": 42.0,
     "hookSpacing": 80.0,
-    "hookRows": 2,
-    "hookLocks": True,
+    "hookRows": 1,
+    "hookLocks": False,
     "wirePitch": 40.0,
     "wireDiameter": 3.0,
-    "bins": 2,
+    "bins": 0,
     "binLids": True,
-    "priceTags": 4,
+    "priceTags": 0,
     "letters": 0,
     "letterText": "DISPLAYNIAN",
     "sign": True,
@@ -240,7 +247,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "walls": 3,
     "infill": 18.0,
     "clearance": 0.28,
-    "joinery": "hybrid",
+    "joinery": "pin",
     "material": "pla",
     "laserMaterial": "plywood3",
     "laserThickness": 3.0,
@@ -340,27 +347,34 @@ def normalize_settings(raw: dict[str, Any] | None) -> dict[str, Any]:
     settings["width"] = _number(settings.get("width"), 360.0, 120.0, 900.0)
     settings["depth"] = _number(settings.get("depth"), 270.0, 120.0, 600.0)
     settings["levels"] = _integer(settings.get("levels"), 4, 1, 6)
-    settings["levelSpacing"] = _number(settings.get("levelSpacing"), 94.0, 35.0, 220.0)
-    settings["shelfDepth"] = _number(settings.get("shelfDepth"), 185.0, 60.0, settings["depth"] - 20.0)
-    settings["shelfTaper"] = _number(settings.get("shelfTaper"), 0.9, 0.55, 1.0)
+    settings["levelSpacing"] = _number(settings.get("levelSpacing"), 58.0, 35.0, 220.0)
+    settings["shelfDepth"] = _number(settings.get("shelfDepth"), 160.0, 60.0, settings["depth"] - 16.0)
+    settings["shelfTaper"] = _number(settings.get("shelfTaper"), 1.0, 0.55, 1.0)
     settings["addBase"] = _boolean(settings.get("addBase"), True)
     settings["addRear"] = _boolean(settings.get("addRear"), True)
     settings["addFront"] = _boolean(settings.get("addFront"), True)
     settings["addLocks"] = _boolean(settings.get("addLocks"), True)
-    settings["baseHeight"] = _number(settings.get("baseHeight"), 8.0, 3.0, 30.0)
-    settings["baseRadius"] = _number(settings.get("baseRadius"), 8.0, 0.0, 40.0)
-    settings["sideThickness"] = _number(settings.get("sideThickness"), 10.0, 2.0, 24.0)
-    settings["postDepth"] = _number(settings.get("postDepth"), 26.0, 8.0, 80.0)
-    settings["panelThickness"] = _number(settings.get("panelThickness"), 6.0, 2.0, 20.0)
-    settings["shelfThickness"] = _number(settings.get("shelfThickness"), 6.0, 2.0, 20.0)
-    settings["lipHeight"] = _number(settings.get("lipHeight"), 16.0, 0.0, 80.0)
-    settings["lipThickness"] = _number(settings.get("lipThickness"), 3.0, 1.0, 12.0)
+    settings["baseHeight"] = _number(settings.get("baseHeight"), 4.0, 2.0, 30.0)
+    settings["baseRadius"] = _number(settings.get("baseRadius"), 6.0, 0.0, 40.0)
+    settings["sideThickness"] = _number(settings.get("sideThickness"), 4.0, 2.0, 24.0)
+    settings["postDepth"] = _number(settings.get("postDepth"), 30.0, 8.0, 80.0)
+    settings["panelThickness"] = _number(settings.get("panelThickness"), 3.0, 1.5, 20.0)
+    settings["shelfThickness"] = _number(settings.get("shelfThickness"), 2.4, 1.2, 20.0)
+    settings["lipHeight"] = _number(settings.get("lipHeight"), 38.0, 12.0, 100.0)
+    settings["lipThickness"] = _number(settings.get("lipThickness"), 2.4, 1.0, 12.0)
+    settings["dividerSpacing"] = _number(settings.get("dividerSpacing"), 38.0, 18.0, 120.0)
+    settings["dividerThickness"] = _number(settings.get("dividerThickness"), 1.8, 0.8, 6.0)
+    settings["trayRadius"] = _number(settings.get("trayRadius"), 3.0, 0.0, 20.0)
+    settings["frontLipRatio"] = _number(settings.get("frontLipRatio"), 0.72, 0.3, 1.0)
+    settings["pinDiameter"] = _number(settings.get("pinDiameter"), 4.2, 2.0, 10.0)
+    settings["lidHeight"] = _number(settings.get("lidHeight"), 42.0, 16.0, 160.0)
     settings["backPanel"] = _choice(settings.get("backPanel"), BACK_PANEL_TYPES, "skadis")
     settings["backHeight"] = _number(settings.get("backHeight"), 0.0, 0.0, 900.0)
     settings["panelSplit"] = _integer(settings.get("panelSplit"), 1, 1, 6)
+    settings["panelRows"] = _integer(settings.get("panelRows"), 2, 1, 6)
     settings["panelMargin"] = _number(settings.get("panelMargin"), 18.0, 4.0, 80.0)
     settings["foldMode"] = _choice(settings.get("foldMode"), FOLD_MODES, "zfold")
-    settings["foldAngle"] = _number(settings.get("foldAngle"), 82.0, 45.0, 95.0)
+    settings["foldAngle"] = _number(settings.get("foldAngle"), 68.0, 30.0, 85.0)
     settings["transport"] = _boolean(settings.get("transport"), True)
     settings["transportLid"] = _boolean(settings.get("transportLid"), True)
     settings["transportHandle"] = _boolean(settings.get("transportHandle"), True)
@@ -378,11 +392,11 @@ def normalize_settings(raw: dict[str, Any] | None) -> dict[str, Any]:
     settings["shelfBrackets"] = _boolean(settings.get("shelfBrackets"), True)
     settings["railEnds"] = _boolean(settings.get("railEnds"), True)
     settings["wallMounts"] = _boolean(settings.get("wallMounts"), False)
-    settings["hooks"] = _integer(settings.get("hooks"), 10, 0, 80)
+    settings["hooks"] = _integer(settings.get("hooks"), 3, 0, 40)
     settings["hookType"] = _choice(settings.get("hookType"), HOOK_TYPES, "skadis")
     settings["hookLength"] = _number(settings.get("hookLength"), 42.0, 12.0, 100.0)
     settings["hookSpacing"] = _number(settings.get("hookSpacing"), 80.0, 20.0, 160.0)
-    settings["hookRows"] = _integer(settings.get("hookRows"), 2, 1, 8)
+    settings["hookRows"] = _integer(settings.get("hookRows"), 1, 1, 4)
     settings["hookLocks"] = _boolean(settings.get("hookLocks"), True)
     settings["wirePitch"] = _number(settings.get("wirePitch"), 40.0, 15.0, 120.0)
     settings["wireDiameter"] = _number(settings.get("wireDiameter"), 3.0, 1.0, 10.0)
@@ -391,7 +405,9 @@ def normalize_settings(raw: dict[str, Any] | None) -> dict[str, Any]:
     settings["priceTags"] = _integer(settings.get("priceTags"), 4, 0, 40)
     settings["letters"] = _integer(settings.get("letters"), 0, 0, 40)
     settings["letterText"] = str(settings.get("letterText") or "DISPLAYNIAN")[:24]
-    settings["sign"] = _boolean(settings.get("sign"), True)
+    settings["sign"] = _boolean(settings.get("sign"), False)
+    settings["signText"] = str(settings.get("signText") or "DISPLAYNIAN")[:24]
+    settings["testCoupons"] = _boolean(settings.get("testCoupons"), True)
     settings["awning"] = _boolean(settings.get("awning"), False)
     settings["accessoryTray"] = _boolean(settings.get("accessoryTray"), True)
     settings["insert"] = _choice(settings.get("insert"), INSERT_TYPES, "none")
@@ -465,8 +481,8 @@ def normalize_settings(raw: dict[str, Any] | None) -> dict[str, Any]:
         if isinstance(value, (int, float))
     }
     settings["backHeight"] = settings["backHeight"] or min(
-        520.0,
-        settings["baseHeight"] + settings["levels"] * settings["levelSpacing"] + settings["lipHeight"] + 24.0,
+        650.0,
+        settings["baseHeight"] + (settings["levels"] - 1) * settings["levelSpacing"] + settings["lipHeight"] + 80.0,
     )
     return settings
 

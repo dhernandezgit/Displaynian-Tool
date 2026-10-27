@@ -113,6 +113,7 @@ def export_laser_zip(payload: str) -> str:
             for part in result["parts"]:
                 writer.writerow([part["id"], part["name"], part["group"], f"{part['volume']:.1f}", part["triangles"]])
             archive.writestr("piezas.csv", rows.getvalue())
+            archive.writestr("cartel.svg", engine._label_svg(result["settings"]))
             archive.writestr(
                 "ajustes.json",
                 json.dumps(result["settings"], indent=2, ensure_ascii=False),

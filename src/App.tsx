@@ -40,7 +40,7 @@ import HelpDialog from "./components/HelpDialog";
 import StatusBar from "./components/StatusBar";
 import Logo from "./components/Logo";
 
-const SETTINGS_KEY = "displaynian-settings-v1";
+const SETTINGS_KEY = "displaynian-settings-v2";
 const THEME_KEY = "displaynian-theme";
 const PROJECT_NAME_KEY = "displaynian-project-name";
 
@@ -329,8 +329,7 @@ export default function App() {
   }, [build, search]);
 
   const modeLabel = settings.mode === "3d" ? "Impresión 3D" : "Corte láser";
-  const laserAvailable = Boolean(build?.laser && build.mode === "laser");
-  const showSheets = settings.mode === "laser" && centerTab === "sheets" && laserAvailable;
+  const showSheets = settings.mode === "laser" && Boolean(build?.laser);
 
   return (
     <div className="app-shell">
@@ -391,7 +390,7 @@ export default function App() {
 
       <div className="subbar">
         <span className="subbar-system"><Layers size={14} /> {SYSTEM_CARDS.find((card) => card.id === settings.system)?.label || settings.system}</span>
-        <span>{settings.levels} niveles</span>
+        <span>{settings.levels} bandejas</span>
         <span>{settings.width.toFixed(0)} × {settings.depth.toFixed(0)} mm</span>
         <span>{modeLabel}</span>
         <span className="subbar-flex" />
@@ -431,12 +430,6 @@ export default function App() {
 
         <section className="stage">
           <div className="stage-toolbar">
-            {settings.mode === "laser" ? (
-              <div className="view-tabs">
-                <button type="button" className={centerTab === "3d" ? "is-active" : ""} onClick={() => setCenterTab("3d")}>Montaje 3D</button>
-                <button type="button" className={centerTab === "sheets" ? "is-active" : ""} onClick={() => setCenterTab("sheets")}>Láminas</button>
-              </div>
-            ) : null}
             {!showSheets ? (
               <>
                 <div className="view-modes">
@@ -522,7 +515,7 @@ export default function App() {
             {buildError ? <div className="error-chip">{buildError}</div> : null}
           </div>
           <div className="stage-hint">
-            {showSheets ? "Láser: SVG y DXF por hoja. Mide espesor y kerf antes de cortar. Bisagra viva solo en 3–4 mm." : settings.mode === "3d" ? "Ganchos recomendados: imprimir de lado. Plegado: PETG o ASA." : "Montaje de referencia. Cambia a Láminas para exportar el corte."}
+            {showSheets ? "Láser: SVG y DXF por hoja. Mide espesor y kerf antes de cortar." : settings.mode === "3d" ? "Bandejas finas, enlaces tumbados y pasadores en vertical. Prueba un enlace antes del set completo." : "Montaje de referencia. Cambia a Láminas para exportar el corte."}
           </div>
         </section>
 
