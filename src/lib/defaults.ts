@@ -224,6 +224,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   cornerLeg: 34,
   cornerRadius: 7,
   cornerScrew: 3.2,
+  cornerType: "l",
   panelJoiners: true,
   shelfBrackets: true,
   railEnds: true,

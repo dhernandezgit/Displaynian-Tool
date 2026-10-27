@@ -38,6 +38,17 @@ export default function ManufacturingPanel({
             <NumberField label="Longitud de escuadra" value={settings.cornerLeg} min={12} max={90} step={1} onChange={(value) => onPatch({ cornerLeg: value })} />
             <NumberField label="Separación de esquina" value={settings.cornerInset} min={6} max={80} step={1} onChange={(value) => onPatch({ cornerInset: value })} />
             <NumberField label="Tornillo de esquina" value={settings.cornerScrew} min={1} max={10} step={0.1} onChange={(value) => onPatch({ cornerScrew: value })} hint="Diámetro del agujero" />
+            <SelectField
+              label="Tipo de esquina"
+              value={settings.cornerType}
+              options={[
+                { value: "l", label: "Escuadra en L" },
+                { value: "u", label: "Clip en U" },
+                { value: "flat", label: "Placa plana 4 tornillos" },
+                { value: "tri", label: "Cartela triangular" },
+              ]}
+              onChange={(value) => onPatch({ cornerType: value })}
+            />
             <Toggle label="Clips de unión de panel" checked={settings.panelJoiners} onChange={(value) => onPatch({ panelJoiners: value })} />
             <Toggle label="Escuadras de bandeja" checked={settings.shelfBrackets} onChange={(value) => onPatch({ shelfBrackets: value })} />
             <Toggle label="Topes de raíl" checked={settings.railEnds} onChange={(value) => onPatch({ railEnds: value })} />

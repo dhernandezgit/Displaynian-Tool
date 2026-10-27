@@ -205,6 +205,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "cornerLeg": 34.0,
     "cornerRadius": 7.0,
     "cornerScrew": 3.2,
+    "cornerType": "l",
     "panelJoiners": True,
     "shelfBrackets": True,
     "railEnds": True,
@@ -372,6 +373,7 @@ def normalize_settings(raw: dict[str, Any] | None) -> dict[str, Any]:
     settings["cornerLeg"] = _number(settings.get("cornerLeg"), 34.0, 12.0, 90.0)
     settings["cornerRadius"] = _number(settings.get("cornerRadius"), 7.0, 0.0, 25.0)
     settings["cornerScrew"] = _number(settings.get("cornerScrew"), 3.2, 1.0, 10.0)
+    settings["cornerType"] = _choice(settings.get("cornerType"), ["l", "u", "flat", "tri"], "l")
     settings["panelJoiners"] = _boolean(settings.get("panelJoiners"), True)
     settings["shelfBrackets"] = _boolean(settings.get("shelfBrackets"), True)
     settings["railEnds"] = _boolean(settings.get("railEnds"), True)

@@ -1145,14 +1145,40 @@ def _corners(settings: dict[str, Any], parts: list[dict[str, Any]]) -> None:
     inset = settings["cornerInset"]
     thick = max(3.0, settings["sideThickness"] - 2.0)
     screw_radius = max(1.0, settings["cornerScrew"] / 2.0)
-    horizontal = rounded_rect(leg, thick, min(3.0, thick / 2.0))
-    vertical = rounded_rect(thick, leg, min(3.0, thick / 2.0))
-    poly = unary_union([horizontal, vertical])
-    holes = [
-        Point(leg * 0.66, thick / 2.0).buffer(screw_radius, resolution=20),
-        Point(thick / 2.0, leg * 0.66).buffer(screw_radius, resolution=20),
-    ]
-    poly = _holes_in(poly, holes)
+    kind = settings["cornerType"]
+    if kind == "u":
+        poly = rounded_rect(leg, leg, min(4.0, leg / 3.0))
+        poly = poly.difference(_t(rounded_rect(leg - thick * 2.0, leg - thick * 2.0, 3.0), thick, thick))
+        holes = [
+            Point(thick / 2.0, leg * 0.68).buffer(screw_radius, resolution=20),
+            Point(leg - thick / 2.0, leg * 0.68).buffer(screw_radius, resolution=20),
+        ]
+        poly = _holes_in(poly, holes)
+    elif kind == "flat":
+        poly = rounded_rect(leg, leg, min(6.0, leg / 4.0))
+        holes = [
+            Point(leg * 0.28, leg * 0.28).buffer(screw_radius, resolution=20),
+            Point(leg * 0.72, leg * 0.28).buffer(screw_radius, resolution=20),
+            Point(leg * 0.28, leg * 0.72).buffer(screw_radius, resolution=20),
+            Point(leg * 0.72, leg * 0.72).buffer(screw_radius, resolution=20),
+        ]
+        poly = _holes_in(poly, holes)
+    elif kind == "tri":
+        poly = Polygon([(0.0, 0.0), (leg, 0.0), (0.0, leg)])
+        holes = [
+            Point(leg * 0.2, leg * 0.2).buffer(screw_radius, resolution=20),
+            Point(leg * 0.58, leg * 0.16).buffer(screw_radius, resolution=20),
+        ]
+        poly = _holes_in(poly, holes)
+    else:
+        horizontal = rounded_rect(leg, thick, min(3.0, thick / 2.0))
+        vertical = rounded_rect(thick, leg, min(3.0, thick / 2.0))
+        poly = unary_union([horizontal, vertical])
+        holes = [
+            Point(leg * 0.66, thick / 2.0).buffer(screw_radius, resolution=20),
+            Point(thick / 2.0, leg * 0.66).buffer(screw_radius, resolution=20),
+        ]
+        poly = _holes_in(poly, holes)
     spots = [
         (inset, inset, 0.0),
         (settings["width"] - inset - leg, inset, 90.0),

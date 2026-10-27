@@ -55,6 +55,7 @@ export interface AppSettings {
   cornerLeg: number;
   cornerRadius: number;
   cornerScrew: number;
+  cornerType: string;
   panelJoiners: boolean;
   shelfBrackets: boolean;
   railEnds: boolean;
