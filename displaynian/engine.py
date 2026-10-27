@@ -1207,6 +1207,25 @@ def _locks(settings: dict[str, Any], parts: list[dict[str, Any]]) -> None:
         )
 
 
+def _dowels(settings: dict[str, Any], parts: list[dict[str, Any]]) -> None:
+    if settings["joinery"] not in {"dowel", "hybrid"}:
+        return
+    count = 8
+    for index in range(count):
+        x = settings["width"] * 0.18 + (index % 4) * 18.0
+        y = settings["depth"] * 0.84 + (index // 4) * 18.0
+        _part(
+            parts,
+            f"dowel-{index + 1}",
+            f"Pasador {index + 1}",
+            "base",
+            cylinder(x, y, settings["baseHeight"], 3.0, 34.0, 28),
+            "corner",
+            settings,
+            category="hardware",
+        )
+
+
 def _transport(settings: dict[str, Any], parts: list[dict[str, Any]]) -> None:
     if not settings["transport"]:
         return
@@ -1438,6 +1457,7 @@ def _assemble(settings: dict[str, Any]) -> list[dict[str, Any]]:
     _sign(settings, parts, panel_h)
     _awning(settings, parts, panel_h)
     _corners(settings, parts)
+    _dowels(settings, parts)
     _transport(settings, parts)
     return parts
 

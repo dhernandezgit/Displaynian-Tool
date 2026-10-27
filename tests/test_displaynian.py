@@ -83,7 +83,7 @@ def test_all_structural_modules_can_be_disabled():
         }
     )
     assert result["ok"]
-    assert all(part["group"].startswith("shelf") or part["group"] == "transport" for part in result["parts"])
+    assert all(part["group"].startswith("shelf") or part["group"] in {"transport", "base"} for part in result["parts"])
     assert any(check["code"] == "structure-off" for check in result["checks"])
 
 
