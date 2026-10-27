@@ -125,6 +125,25 @@ export interface AppSettings {
   colors: Record<string, string>;
 }
 
+export interface FoldPoseTray {
+  kind: "tray";
+  gaps: number[];
+  angles: number[];
+  offset: number;
+}
+
+export interface FoldPoseLink {
+  kind: "link";
+  gaps_prev: number[];
+  angles_prev: number[];
+  angle: number;
+  gap: number;
+  pivot: [number, number, number];
+  offset: number;
+}
+
+export type FoldPose = FoldPoseTray | FoldPoseLink;
+
 export interface PartBounds {
   min: [number, number, number];
   max: [number, number, number];
@@ -145,6 +164,7 @@ export interface BuildPart {
   fold_matrix: number[];
   transport_only: boolean;
   fold_hide?: boolean;
+  fold_pose?: FoldPose | null;
   explode: number[];
 }
 

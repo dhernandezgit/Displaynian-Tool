@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
-import type { BuildPart, BuildResult, ViewMode } from "../types";
+import type { BuildPart, BuildResult, FoldPose, ViewMode } from "../types";
 
 export interface Viewport3DHandle {
   fit: () => void;
@@ -40,6 +40,35 @@ function matrixFromArray(values: number[]): THREE.Matrix4 {
   const matrix = new THREE.Matrix4();
   if (values.length === 16) matrix.set(...(values as [number, number, number, number, number, number, number, number, number, number, number, number, number, number, number, number]));
   return matrix;
+}
+
+function poseMatrixAt(pose: FoldPose | null | undefined, t: number): THREE.Matrix4 | null {
+  if (!pose) return null;
+  if (pose.kind === "tray") {
+    let y = pose.offset * t;
+    let z = 0;
+    for (let index = 0; index < pose.gaps.length; index += 1) {
+      const gap = pose.gaps[index];
+      const angle = pose.angles[index] * t;
+      y -= gap * Math.sin(angle);
+      z += gap * Math.cos(angle) - gap;
+    }
+    return new THREE.Matrix4().makeTranslation(0, y, z);
+  }
+  let y = pose.offset * t;
+  let z = 0;
+  for (let index = 0; index < pose.gaps_prev.length; index += 1) {
+    const gap = pose.gaps_prev[index];
+    const angle = pose.angles_prev[index] * t;
+    y -= gap * Math.sin(angle);
+    z += gap * Math.cos(angle) - gap;
+  }
+  const [px, py, pz] = pose.pivot;
+  const rotation = new THREE.Matrix4().makeRotationX(pose.angle * t);
+  const toPivot = new THREE.Matrix4().makeTranslation(px, py, pz);
+  const fromPivot = new THREE.Matrix4().makeTranslation(-px, -py, -pz);
+  const link = toPivot.multiply(rotation).multiply(fromPivot);
+  return new THREE.Matrix4().makeTranslation(0, y, z).multiply(link);
 }
 
 function lerpMatrix(open: THREE.Matrix4, folded: THREE.Matrix4, t: number, offset: THREE.Vector3): THREE.Matrix4 {
@@ -347,7 +376,13 @@ export const Viewport3D = forwardRef<Viewport3DHandle, Props>(function Viewport3
         offset.set(object.part.explode[0], object.part.explode[1], object.part.explode[2]).multiplyScalar(explodeAmount);
       }
       const progress = viewMode === "open" || viewMode === "exploded" ? 0 : foldProgress;
-      object.holder.matrix.copy(lerpMatrix(object.open, object.folded, progress, offset));
+      const kinematic = poseMatrixAt(object.part.fold_pose, progress);
+      if (kinematic) {
+        if (viewMode === "exploded") kinematic.premultiply(new THREE.Matrix4().makeTranslation(offset.x, offset.y, offset.z));
+        object.holder.matrix.copy(kinematic);
+      } else {
+        object.holder.matrix.copy(lerpMatrix(object.open, object.folded, progress, offset));
+      }
       object.holder.matrixWorldNeedsUpdate = true;
     }
   }, [viewMode, foldProgress, explodeAmount, build]);

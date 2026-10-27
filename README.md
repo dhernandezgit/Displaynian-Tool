@@ -1,6 +1,6 @@
 # Displaynian
 
-**Versión 0.4.0** · Displays plegables, modulares y paramétricos para ferias, mercados y tiendas.
+**Versión 0.4.1** · Displays plegables, modulares y paramétricos para ferias, mercados y tiendas.
 
 Displaynian genera estructuras de exposición a partir de parámetros. El motor de geometría está escrito en **Python** y se ejecuta en el navegador con **Pyodide/WebAssembly**. El frontend usa **React + Three.js**. No hay servidor, no se suben archivos y no hace falta cuenta.
 
@@ -45,7 +45,7 @@ La altura y el fondo de bandeja se controlan de forma global para que los enlace
 - **Acordeón real** con cuatro enlaces por nivel y pasadores impresos. Los enlaces y pasadores **no desaparecen**: siguen montados en Desplegado y Plegado.
 - **Auto-división** de base, bandejas y caja si superan la cama, con placas de unión.
 - Vistas **Desplegado**, **Plegado**, **Transporte** y **Despiece**.
-- **Plegado** muestra el mecanismo y las uniones; **Transporte** muestra una caja cerrada con asa, más compacta y protectora.
+- **Plegado** muestra el mecanismo y las uniones, con cinemática exacta de enlaces y pasadores; **Transporte** muestra una caja cerrada con asa, más compacta y protectora.
 - Separación **independiente por nivel**.
 - Contenedores individuales extraíbles, con tapa opcional, en lugar de separadores.
 - Panel trasero SKÅDIS **opcional**, apagado por defecto.

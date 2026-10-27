@@ -190,6 +190,7 @@ def _part(
     category: str = "structure",
     explode: tuple[float, float, float] | None = None,
     fold_hide: bool = False,
+    fold_pose: dict[str, Any] | None = None,
 ) -> None:
     if mesh.empty or part_id in settings["disabledParts"]:
         return
@@ -219,6 +220,7 @@ def _part(
             "fold_matrix": matrix_array(fold_matrix if fold_matrix is not None else IDENTITY),
             "transport_only": transport_only,
             "fold_hide": fold_hide,
+            "fold_pose": fold_pose,
             "explode": list(explode or (0.0, 0.0, 0.0)),
         }
     )

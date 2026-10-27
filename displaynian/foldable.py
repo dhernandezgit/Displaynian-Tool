@@ -360,6 +360,7 @@ def build_parts(
         fold_matrix: np.ndarray | None = None,
         transport_only: bool = False,
         fold_hide: bool = False,
+        fold_pose: dict[str, Any] | None = None,
     ) -> None:
         add_part(
             parts,
@@ -375,6 +376,7 @@ def build_parts(
             category,
             None,
             fold_hide,
+            fold_pose,
         )
 
     width = settings["width"]
@@ -437,6 +439,19 @@ def build_parts(
         z_fold.append(z_fold[-1] + gaps[index] * math.cos(angle))
     fold_y_offset = max(0.0, -min(y_fold) * 0.5 + 2.0)
     y_fold = [0.0] + [value + fold_y_offset for value in y_fold[1:]]
+    gap_angles = [0.0] + [
+        theta if (index - 1) % 2 == 0 else -theta
+        for index in range(1, levels)
+    ]
+    tray_pose = [
+        {
+            "kind": "tray",
+            "gaps": gaps[1:index + 1],
+            "angles": gap_angles[1:index + 1],
+            "offset": fold_y_offset,
+        }
+        for index in range(levels)
+    ]
     tray_translation = [
         (0.0, y_fold[index], z_fold[index] - (z_positions[index] - base_h))
         for index in range(levels)
@@ -467,7 +482,7 @@ def build_parts(
             mesh = mesh.translated((module_x, tray_y, z))
             suffix = f"-{module + 1}" if tray_splits > 1 else ""
             name = level["name"] if tray_splits == 1 else f"{level['name']} · módulo {module + 1}"
-            emit(f"tray-{index + 1}{suffix}", name, f"tray-{index + 1}", mesh, "shelf", "shelf", fold_matrix=fold)
+            emit(f"tray-{index + 1}{suffix}", name, f"tray-{index + 1}", mesh, "shelf", "shelf", fold_matrix=fold, fold_pose=tray_pose[index])
             if style == "containers":
                 wall = settings["shelfThickness"]
                 count = max(1, int(level.get("containers", 2)))
@@ -534,6 +549,15 @@ def build_parts(
                     pivot = (0.0, tray_y + pin_y, z_low + pin_z)
                     fold = lower_fold @ matrix_rotate_x(math.degrees(angle), pivot)
                     link_count += 1
+                    link_pose = {
+                        "kind": "link",
+                        "gaps_prev": gaps[1:level_index],
+                        "angles_prev": gap_angles[1:level_index],
+                        "angle": gap_angles[level_index],
+                        "gap": gap,
+                        "pivot": [0.0, tray_y + pin_y, z_low + pin_z],
+                        "offset": fold_y_offset,
+                    }
                     emit(
                         f"link-{level_index}-{side_name}-{position}",
                         f"Enlace {level_index} {side_name} {position}",
@@ -542,6 +566,7 @@ def build_parts(
                         "frame",
                         "joint",
                         fold_matrix=fold,
+                        fold_pose=link_pose,
                     )
             for side_name, x in (("der", width), ("izq", 0.0)):
                 for position, pin_y in (("del", pin_front), ("tras", pin_rear)):
@@ -559,6 +584,7 @@ def build_parts(
                             "corner",
                             "hardware",
                             fold_matrix=matrix_translate(list(tray_translation[tray_index])),
+                            fold_pose=tray_pose[tray_index],
                         )
 
     panel_w = width - 2.0 * link_t - 4.0

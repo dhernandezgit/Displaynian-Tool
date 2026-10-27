@@ -1,6 +1,26 @@
 # Changelog
 
+## 0.4.1 — 2026-10-27
+
+Ajuste fino del movimiento, la caja y el formato.
+
+### 3D
+
+- Cinemática exacta durante la animación: enlaces, pasadores y bandejas permanecen alineados en todo el recorrido.
+- Enlaces visibles en Plegado; la caja cerrada de Transporte oculta el conjunto.
+- Caja de transporte más profunda que el plegado y con asa real.
+- Formato por defecto **170 × 160 mm**; panel SKÅDIS opcional y apagado.
+- Separación por nivel y contenedores individuales con tapas.
+- Volumen y material corregidos en extrusión con huecos.
+- Wide 340 compacto en profundidad para poder dividirse en A1 Mini.
+
+### Calidad
+
+- 29 tests, typecheck y build.
+- Guardado local v3 para forzar los valores nuevos.
+
 ## 0.4.0 — 2026-10-27
+
 
 Movimiento realista, caja de transporte cerrada, formato compacto y bandejas configurables.
 

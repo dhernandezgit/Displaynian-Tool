@@ -89,7 +89,7 @@ export default function DesignPanel({
 
       <Section title="Variantes" subtitle="Ancho y número de bandejas" icon={<LayoutGrid size={15} />} defaultOpen>
         <div className="quick-row">
-          <button type="button" className="ghost-button" onClick={() => onPatch({ width: 340, depth: 190, shelfDepth: 160, levels: 4, panelSplit: 2 })}>Wide 340</button>
+          <button type="button" className="ghost-button" onClick={() => onPatch({ width: 340, depth: 170, shelfDepth: 150, levelSpacing: 50, levels: 4, panelSplit: 2, panelRows: 2 })}>Wide 340</button>
           <button type="button" className="ghost-button" onClick={() => onPatch({ width: 230, depth: 190, shelfDepth: 150, levels: 4, panelSplit: 1 })}>Narrow 230</button>
           <button type="button" className="chip-button" onClick={() => onPatch({ levels: 3 })}>3 bandejas</button>
           <button type="button" className="chip-button" onClick={() => onPatch({ levels: 4 })}>4 bandejas</button>
