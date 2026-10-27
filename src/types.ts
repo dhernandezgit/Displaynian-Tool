@@ -44,6 +44,8 @@ export interface AppSettings {
   dividerThickness: number;
   trayRadius: number;
   trayTilt: number;
+  cantileverStep: number;
+  cantileverClosedGap: number;
   frontLipRatio: number;
   pinDiameter: number;
   lidHeight: number;

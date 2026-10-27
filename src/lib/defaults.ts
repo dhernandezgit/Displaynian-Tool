@@ -4,18 +4,18 @@ export const SYSTEM_CARDS: SystemCard[] = [
   {
     id: "keychain",
     label: "Llaveros",
-    description: "Tres bandejas con contenedores extraíbles.",
+    description: "Tres bandejas cantilever con contenedores extraíbles.",
     icon: "KeyRound",
     accent: "#d9694f",
-    defaults: { width: 170, depth: 160, levels: 3, levelSpacing: 50, shelfDepth: 140, lipHeight: 16, trayTilt: 10, backPanel: "none", hooks: 0 },
+    defaults: { width: 170, depth: 150, levels: 3, levelSpacing: 50, shelfDepth: 120, lipHeight: 24, trayTilt: 0, cantileverStep: 24, cantileverClosedGap: 30, backPanel: "none", hooks: 0 },
   },
   {
     id: "stickers",
     label: "Pegatinas y tarjetas",
-    description: "Bandejas inclinadas y vacías para producto plano.",
+    description: "Bandejas bajas y amplias para producto plano.",
     icon: "Sticker",
     accent: "#c58a3d",
-    defaults: { width: 180, depth: 140, levels: 3, levelSpacing: 60, shelfDepth: 110, lipHeight: 12, trayTilt: 15, backPanel: "none", hooks: 0 },
+    defaults: { width: 180, depth: 140, levels: 3, levelSpacing: 58, shelfDepth: 110, lipHeight: 18, trayTilt: 0, cantileverStep: 26, cantileverClosedGap: 24, backPanel: "none", hooks: 0 },
   },
   {
     id: "jewelry",
@@ -23,7 +23,7 @@ export const SYSTEM_CARDS: SystemCard[] = [
     description: "Insertos de anillos, pendientes y collares.",
     icon: "Gem",
     accent: "#a56cad",
-    defaults: { width: 170, depth: 150, levels: 3, levelSpacing: 50, shelfDepth: 120, lipHeight: 14, trayTilt: 8, backPanel: "none", hooks: 0 },
+    defaults: { width: 170, depth: 145, levels: 3, levelSpacing: 50, shelfDepth: 115, lipHeight: 20, trayTilt: 0, cantileverStep: 24, cantileverClosedGap: 26, backPanel: "none", hooks: 0 },
   },
   {
     id: "coasters",
@@ -31,7 +31,7 @@ export const SYSTEM_CARDS: SystemCard[] = [
     description: "Bandejas con raíles para posavasos.",
     icon: "CircleDot",
     accent: "#4f8f83",
-    defaults: { width: 180, depth: 150, levels: 3, levelSpacing: 55, shelfDepth: 125, lipHeight: 12, trayTilt: 6, backPanel: "none", hooks: 0 },
+    defaults: { width: 180, depth: 150, levels: 3, levelSpacing: 54, shelfDepth: 120, lipHeight: 16, trayTilt: 0, cantileverStep: 22, cantileverClosedGap: 22, backPanel: "none", hooks: 0 },
   },
   {
     id: "bookmarks",
@@ -39,7 +39,7 @@ export const SYSTEM_CARDS: SystemCard[] = [
     description: "Tres bandejas con cuatro divisores.",
     icon: "BookMarked",
     accent: "#5f7fa8",
-    defaults: { width: 170, depth: 150, levels: 3, levelSpacing: 48, shelfDepth: 120, lipHeight: 12, trayTilt: 12, backPanel: "none", hooks: 0 },
+    defaults: { width: 170, depth: 145, levels: 3, levelSpacing: 48, shelfDepth: 110, lipHeight: 18, trayTilt: 0, cantileverStep: 22, cantileverClosedGap: 24, backPanel: "none", hooks: 0 },
   },
   {
     id: "pens",
@@ -47,22 +47,22 @@ export const SYSTEM_CARDS: SystemCard[] = [
     description: "Tres bandejas con inserto de seis bolígrafos.",
     icon: "PenTool",
     accent: "#b3644f",
-    defaults: { width: 180, depth: 150, levels: 3, levelSpacing: 55, shelfDepth: 120, lipHeight: 14, trayTilt: 0, backPanel: "none", hooks: 0 },
+    defaults: { width: 180, depth: 150, levels: 3, levelSpacing: 56, shelfDepth: 115, lipHeight: 22, trayTilt: 0, cantileverStep: 22, cantileverClosedGap: 28, backPanel: "none", hooks: 0 },
   },
   {
     id: "mixed",
     label: "Sistema mixto",
-    description: "Contenedores, divisores y bandejas inclinadas.",
+    description: "Contenedores, divisores y bandejas escalonadas.",
     icon: "LayoutGrid",
     accent: "#6c7f88",
-    defaults: { width: 180, depth: 150, levels: 3, levelSpacing: 52, shelfDepth: 120, lipHeight: 12, trayTilt: 10, backPanel: "none", hooks: 0 },
+    defaults: { width: 180, depth: 155, levels: 3, levelSpacing: 52, shelfDepth: 120, lipHeight: 22, trayTilt: 0, cantileverStep: 24, cantileverClosedGap: 28, backPanel: "none", hooks: 0 },
   },
 ];
 
 export const CATALOG_GROUPS: { id: string; label: string; description: string }[] = [
-  { id: "estructura", label: "Estructura", description: "Pies y uniones del flat-pack." },
+  { id: "estructura", label: "Estructura", description: "Base, brazos y pasadores." },
   { id: "accesorios", label: "Accesorios", description: "Ganchos, cartel y contenedores." },
-  { id: "transporte", label: "Transporte", description: "Caja cerrada y asa." },
+  { id: "transporte", label: "Transporte", description: "Caja para el conjunto plegado." },
 ];
 
 export const CATALOG: CatalogItem[] = [
@@ -70,7 +70,7 @@ export const CATALOG: CatalogItem[] = [
   { key: "sign", label: "Cartel", description: "Placa con hueco para etiqueta de papel.", group: "accesorios", kind: "bool", icon: "Signpost" },
   { key: "containerLids", label: "Tapas de contenedor", description: "Tapan los contenedores individuales.", group: "accesorios", kind: "bool", icon: "Package" },
   { key: "hooks", label: "Ganchos", description: "Ganchos SKÅDIS si activas panel.", group: "accesorios", kind: "count", defaultCount: 3, min: 0, max: 20, icon: "Anchor" },
-  { key: "transport", label: "Caja de transporte", description: "Caja cerrada para el flat-pack.", group: "transporte", kind: "bool", icon: "Luggage" },
+  { key: "transport", label: "Caja de transporte", description: "Caja cerrada para el cantilever plegado.", group: "transporte", kind: "bool", icon: "Luggage" },
   { key: "transportHandle", label: "Asa", description: "Asa de la caja.", group: "transporte", kind: "bool", icon: "Hand" },
 ];
 
@@ -172,10 +172,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   mode: "3d",
   system: "keychain",
   width: 170,
-  depth: 160,
+  depth: 150,
   levels: 3,
   levelSpacing: 50,
-  shelfDepth: 140,
+  shelfDepth: 120,
   shelfTaper: 1,
   addBase: true,
   addRear: true,
@@ -187,12 +187,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
   postDepth: 30,
   panelThickness: 3,
   shelfThickness: 2.4,
-  lipHeight: 16,
+  lipHeight: 24,
   lipThickness: 2.4,
   dividerSpacing: 32,
   dividerThickness: 1.6,
   trayRadius: 3,
-  trayTilt: 10,
+  trayTilt: 0,
+  cantileverStep: 24,
+  cantileverClosedGap: 30,
   frontLipRatio: 0.72,
   pinDiameter: 4.2,
   lidHeight: 38,
@@ -241,7 +243,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   awning: false,
   accessoryTray: false,
   insert: "none",
-  levelConfigs: makeLevels(3, 50, 140, 1, 34).map((level, index) => ({
+  levelConfigs: makeLevels(3, 50, 120, 1, 24).map((level, index) => ({
     ...level,
     style: "containers",
     containers: index === 2 ? 1 : 2,
@@ -321,9 +323,9 @@ export function normalizeSettings(raw: Partial<AppSettings> | null | undefined):
         id: level.id || `level-${index + 1}`,
         name: level.name || `Nivel ${index + 1}`,
       }))
-    : makeLevels(levels, Number(source.levelSpacing) || 50, Number(source.shelfDepth) || 140, Number(source.shelfTaper) || 1, Number(source.lipHeight) || 34);
+    : makeLevels(levels, Number(source.levelSpacing) || 50, Number(source.shelfDepth) || 120, Number(source.shelfTaper) || 1, Number(source.lipHeight) || 24);
   while (levelConfigs.length < levels) {
-    levelConfigs.push({ ...makeLevels(levels, Number(source.levelSpacing) || 50, Number(source.shelfDepth) || 140, Number(source.shelfTaper) || 1, Number(source.lipHeight) || 34)[levelConfigs.length] });
+    levelConfigs.push({ ...makeLevels(levels, Number(source.levelSpacing) || 50, Number(source.shelfDepth) || 120, Number(source.shelfTaper) || 1, Number(source.lipHeight) || 24)[levelConfigs.length] });
   }
   return {
     ...source,

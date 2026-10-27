@@ -40,7 +40,7 @@ import HelpDialog from "./components/HelpDialog";
 import StatusBar from "./components/StatusBar";
 import Logo from "./components/Logo";
 
-const SETTINGS_KEY = "displaynian-settings-v4";
+const SETTINGS_KEY = "displaynian-settings-v5";
 const THEME_KEY = "displaynian-theme";
 const PROJECT_NAME_KEY = "displaynian-project-name";
 
@@ -102,11 +102,9 @@ export default function App() {
   const importRef = useRef<HTMLInputElement | null>(null);
   const buildSeq = useRef(0);
   const settingsRef = useRef(settings);
-  const foldRef = useRef(foldProgress);
   const toastTimer = useRef(0);
 
   useEffect(() => { settingsRef.current = settings; }, [settings]);
-  useEffect(() => { foldRef.current = foldProgress; }, [foldProgress]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -159,25 +157,7 @@ export default function App() {
   }, [toast]);
 
   useEffect(() => {
-    const target = viewMode === "open" || viewMode === "exploded" ? 0 : 1;
-    const from = foldRef.current;
-    if (Math.abs(from - target) < 0.002) {
-      setFoldProgress(target);
-      return;
-    }
-    let frame = 0;
-    const started = performance.now();
-    const duration = 620;
-    const step = (time: number) => {
-      const t = Math.min(1, (time - started) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      const value = from + (target - from) * eased;
-      setFoldProgress(value);
-      foldRef.current = value;
-      if (t < 1) frame = requestAnimationFrame(step);
-    };
-    frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
+    setFoldProgress(viewMode === "open" || viewMode === "exploded" ? 0 : 1);
   }, [viewMode]);
 
   const updateSettings = useCallback((patch: Partial<AppSettings>) => {
@@ -437,7 +417,7 @@ export default function App() {
               <>
                 <div className="view-modes">
                   <button type="button" className={viewMode === "open" ? "is-active" : ""} onClick={() => setViewMode("open")} title="Abierto"><Box size={15} /> Montado</button>
-                  <button type="button" className={viewMode === "fold" ? "is-active" : ""} onClick={() => setViewMode("fold")} title="Plegado"><FoldHorizontal size={15} /> Desmontado</button>
+                  <button type="button" className={viewMode === "fold" ? "is-active" : ""} onClick={() => setViewMode("fold")} title="Plegado"><FoldHorizontal size={15} /> Plegado</button>
                   <button type="button" className={viewMode === "transport" ? "is-active" : ""} onClick={() => setViewMode("transport")} title="Transporte"><Luggage size={15} /> Transporte</button>
                   <button type="button" className={viewMode === "exploded" ? "is-active" : ""} onClick={() => setViewMode("exploded")} title="Despiece"><Expand size={15} /> Despiece</button>
                 </div>
@@ -507,9 +487,9 @@ export default function App() {
             {showSheets
               ? "Láser: SVG y DXF por hoja. Mide espesor y kerf antes de cortar."
               : viewMode === "open"
-                ? "Montado: laterales en la base, bandejas en las ranuras y panel si está activo."
+                ? "Montado: bandejas escalonadas unidas por brazos ranurados y pasadores."
                 : viewMode === "fold"
-                  ? "Desmontado: laterales y bandejas apilados en plano para guardar."
+                  ? "Plegado: brazos en vertical y bandejas apiladas; el panel se guarda encima."
                   : viewMode === "transport"
                     ? "Transporte: caja cerrada con todas las piezas dentro."
                     : "Despiece: piezas separadas para revisar el montaje."}

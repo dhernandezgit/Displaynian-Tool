@@ -93,6 +93,8 @@ def _tray_mesh(
     module_w: float | None = None,
     bottom_holes: list[Polygon] | None = None,
     dividers: bool = True,
+    pin_ys: tuple[float, ...] | None = None,
+    pin_zs: tuple[float, ...] | None = None,
 ) -> Mesh:
     width = settings["width"]
     link_t = settings["sideThickness"]
@@ -103,9 +105,8 @@ def _tray_mesh(
     tray_w = module_w if module_w is not None else width - 2.0 * (link_t + clearance)
     tray_d = depth
     front_h = height * settings["frontLipRatio"]
-    pin_front = 22.0
-    pin_rear = tray_d - 22.0
-    pin_z = height * 0.54
+    pin_ys = pin_ys or (22.0, tray_d - 22.0)
+    pin_zs = pin_zs or (height * 0.54,)
     pin_r = settings["pinDiameter"] / 2.0 + 0.15
     bottom = rounded_rect(tray_w, tray_d, radius)
     if bottom_holes:
@@ -115,8 +116,9 @@ def _tray_mesh(
     side = _difference(
         side,
         [
-            Point(pin_front, pin_z).buffer(pin_r, resolution=24),
-            Point(pin_rear, pin_z).buffer(pin_r, resolution=24),
+            Point(pin_y, pin_z).buffer(pin_r, resolution=24)
+            for pin_y in pin_ys
+            for pin_z in pin_zs
         ],
     )
     mesh = mesh.append(extrude_x(side, 0.0, wall))

@@ -49,11 +49,11 @@ def test_default_3d_build_is_complete():
     assert result["dimensions"]["width"] == pytest.approx(170, abs=1)
     assert result["dimensions"]["levels"] == 3
     tray = next(part for part in result["parts"] if part["id"] == "tray-1")
-    assert tray["dimensions"]["height"] == pytest.approx(2.4, abs=0.5)
+    assert tray["dimensions"]["height"] == pytest.approx(24, abs=1)
     assert result["dimensions"]["foldedHeight"] < result["dimensions"]["height"]
-    assert any(part["id"] == "side-left" for part in result["parts"])
-    assert any(part["id"] == "side-right" for part in result["parts"])
-    assert not any(part["id"].startswith("link-") for part in result["parts"])
+    assert not any(part["id"].startswith("side-") for part in result["parts"])
+    assert any(part["id"] == "link-1-izq" for part in result["parts"])
+    assert any(part["id"] == "pin-1-inferior-izq" for part in result["parts"])
     assert any(check["code"] == "bed-fit" for check in result["checks"])
     assert result["material_grams"] > 0
     assert result["bom"]
@@ -89,8 +89,8 @@ def test_all_structural_modules_can_be_disabled():
         }
     )
     assert result["ok"]
-    assert any(part["id"] == "side-left" for part in result["parts"])
-    assert not any(part["id"].startswith("link-") for part in result["parts"])
+    assert not any(part["id"] == "base" for part in result["parts"])
+    assert any(part["id"].startswith("link-") for part in result["parts"])
     assert any(check["code"] == "structure-off" for check in result["checks"])
 
 
@@ -196,7 +196,8 @@ def test_skadis_slot_grid_has_expected_pitch():
     result = engine.build({"settings": _settings(backPanel="skadis", panelSplit=1)})
     panel = next(part for part in result["parts"] if part["group"] == "panel" and "Panel" in part["name"])
     assert panel["dimensions"]["width"] > 150
-    assert panel["dimensions"]["height"] > 100
+    assert panel["dimensions"]["depth"] > 100
+    assert panel["dimensions"]["height"] == pytest.approx(3, abs=0.5)
 
 
 def test_box_mesh_is_closed():
@@ -237,8 +238,8 @@ def test_wide_and_narrow_variants_build():
         assert result["dimensions"]["width"] == pytest.approx(width)
 
 
-def test_flatpack_a1_mini_preset_fits():
-    settings = normalize_settings(_settings(width=150, depth=130, shelfDepth=110, levels=2, levelSpacing=45, printer="a1mini", bedWidth=180, bedDepth=180, bedHeight=180))
+def test_cantilever_a1_mini_preset_fits():
+    settings = normalize_settings(_settings(width=150, depth=120, shelfDepth=95, levels=2, levelSpacing=45, lipHeight=22, cantileverStep=20, cantileverClosedGap=28, printer="a1mini", bedWidth=180, bedDepth=180, bedHeight=180))
     result = engine.build({"settings": settings})
     assert not any(check["code"] == "bed-fit" and check["level"] == "warn" for check in result["checks"])
     assert any(part["id"] == "transport-case" for part in result["parts"])
@@ -298,3 +299,38 @@ def test_per_level_gap_moves_trays():
     z3 = trays["tray-3"]["open_matrix"][11]
     assert z2 - z1 == pytest.approx(72, abs=1)
     assert z3 - z2 == pytest.approx(40, abs=1)
+
+
+def test_cantilever_links_alternate_lanes_and_transport_cover_fits():
+    result = engine.build({"settings": _settings()})
+    links = [part for part in result["parts"] if part["id"].startswith("link-")]
+    assert len(links) == 4
+    first = np.asarray(next(part for part in links if part["id"] == "link-1-izq")["fold_matrix"], dtype=float).reshape(4, 4)
+    second = np.asarray(next(part for part in links if part["id"] == "link-2-izq")["fold_matrix"], dtype=float).reshape(4, 4)
+    assert abs(first[1, 3] - second[1, 3]) > 20
+    case = next(part for part in result["parts"] if part["id"] == "transport-case")
+    case_top = case["bounds"]["max"][2]
+    folded_top = 0.0
+    for part in result["parts"]:
+        if part.get("transport_only") or part.get("fold_hide"):
+            continue
+        _, high = engine._matrix_bounds(part, "fold_matrix")
+        folded_top = max(folded_top, high[2])
+    assert case_top >= folded_top
+    assert result["dimensions"]["foldedHeight"] < result["dimensions"]["height"]
+
+
+def test_cantilever_link_is_flat_for_printing():
+    result = engine.build({"settings": _settings()})
+    link = next(part for part in result["parts"] if part["id"] == "link-1-izq")
+    assert link["dimensions"]["height"] == pytest.approx(_settings()["sideThickness"], abs=0.2)
+    assert link["dimensions"]["width"] > 20
+    assert link["dimensions"]["depth"] > link["dimensions"]["width"]
+
+
+def test_system_presets_change_cantilever_geometry():
+    keychain = normalize_settings({"system": "keychain"})
+    stickers = normalize_settings({"system": "stickers"})
+    assert keychain["cantileverStep"] != stickers["cantileverStep"]
+    assert keychain["lipHeight"] != stickers["lipHeight"]
+    assert keychain["shelfDepth"] != stickers["shelfDepth"]

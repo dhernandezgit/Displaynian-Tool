@@ -7,12 +7,16 @@ from typing import Any
 SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
     "keychain": {
         "label": "Llaveros y colgantes",
-        "description": "Bandejas finas con compartimentos, enlaces plegables y panel SKÅDIS.",
+        "description": "Tres bandejas cantilever con contenedores extraíbles.",
         "width": 170.0,
-        "depth": 160.0,
+        "depth": 150.0,
         "levels": 3,
         "levelSpacing": 50.0,
-        "shelfDepth": 140.0,
+        "shelfDepth": 120.0,
+        "lipHeight": 24.0,
+        "trayTilt": 0.0,
+        "cantileverStep": 24.0,
+        "cantileverClosedGap": 30.0,
         "backPanel": "none",
         "hooks": 0,
         "bins": 0,
@@ -23,11 +27,15 @@ SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
     "stickers": {
         "label": "Pegatinas, postales y tarjetas",
         "description": "Bandejas amplias y poco profundas para producto plano.",
-        "width": 170.0,
-        "depth": 160.0,
+        "width": 180.0,
+        "depth": 140.0,
         "levels": 3,
-        "levelSpacing": 50.0,
-        "shelfDepth": 146.0,
+        "levelSpacing": 58.0,
+        "shelfDepth": 110.0,
+        "lipHeight": 18.0,
+        "trayTilt": 0.0,
+        "cantileverStep": 26.0,
+        "cantileverClosedGap": 24.0,
         "backPanel": "none",
         "hooks": 0,
         "bins": 0,
@@ -39,10 +47,14 @@ SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
         "label": "Joyería",
         "description": "Bandejas con insertos de anillos, pendientes, pulseras y collares.",
         "width": 170.0,
-        "depth": 160.0,
+        "depth": 145.0,
         "levels": 3,
         "levelSpacing": 50.0,
-        "shelfDepth": 140.0,
+        "shelfDepth": 115.0,
+        "lipHeight": 20.0,
+        "trayTilt": 0.0,
+        "cantileverStep": 24.0,
+        "cantileverClosedGap": 26.0,
         "backPanel": "none",
         "hooks": 0,
         "bins": 0,
@@ -53,11 +65,15 @@ SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
     "coasters": {
         "label": "Posavasos",
         "description": "Bandejas con raíles y topes para posavasos.",
-        "width": 170.0,
-        "depth": 160.0,
+        "width": 180.0,
+        "depth": 150.0,
         "levels": 3,
         "levelSpacing": 54.0,
-        "shelfDepth": 146.0,
+        "shelfDepth": 120.0,
+        "lipHeight": 16.0,
+        "trayTilt": 0.0,
+        "cantileverStep": 22.0,
+        "cantileverClosedGap": 22.0,
         "backPanel": "none",
         "hooks": 0,
         "bins": 0,
@@ -67,12 +83,16 @@ SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
     },
     "bookmarks": {
         "label": "Marcapáginas",
-        "description": "Bandejas con divisores de cuatro compartimentos.",
+        "description": "Tres bandejas con cuatro divisores.",
         "width": 170.0,
-        "depth": 160.0,
-        "levels": 4,
+        "depth": 145.0,
+        "levels": 3,
         "levelSpacing": 48.0,
-        "shelfDepth": 138.0,
+        "shelfDepth": 110.0,
+        "lipHeight": 18.0,
+        "trayTilt": 0.0,
+        "cantileverStep": 22.0,
+        "cantileverClosedGap": 24.0,
         "backPanel": "none",
         "hooks": 0,
         "bins": 0,
@@ -82,12 +102,16 @@ SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
     },
     "pens": {
         "label": "Bolígrafos",
-        "description": "Bandejas con inserto de seis bolígrafos.",
-        "width": 170.0,
-        "depth": 160.0,
+        "description": "Tres bandejas con inserto de seis bolígrafos.",
+        "width": 180.0,
+        "depth": 150.0,
         "levels": 3,
-        "levelSpacing": 54.0,
-        "shelfDepth": 140.0,
+        "levelSpacing": 56.0,
+        "shelfDepth": 115.0,
+        "lipHeight": 22.0,
+        "trayTilt": 0.0,
+        "cantileverStep": 22.0,
+        "cantileverClosedGap": 28.0,
         "backPanel": "none",
         "hooks": 0,
         "bins": 0,
@@ -97,12 +121,16 @@ SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
     },
     "mixed": {
         "label": "Sistema mixto",
-        "description": "Combina bandejas, insertos, panel y ganchos.",
-        "width": 170.0,
-        "depth": 160.0,
+        "description": "Contenedores, divisores y bandejas con paso cantilever.",
+        "width": 180.0,
+        "depth": 155.0,
         "levels": 3,
-        "levelSpacing": 50.0,
-        "shelfDepth": 140.0,
+        "levelSpacing": 52.0,
+        "shelfDepth": 120.0,
+        "lipHeight": 22.0,
+        "trayTilt": 0.0,
+        "cantileverStep": 24.0,
+        "cantileverClosedGap": 28.0,
         "backPanel": "none",
         "hooks": 0,
         "bins": 0,
@@ -170,10 +198,10 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "mode": "3d",
     "system": "keychain",
     "width": 170.0,
-    "depth": 160.0,
+    "depth": 150.0,
     "levels": 3,
     "levelSpacing": 50.0,
-    "shelfDepth": 140.0,
+    "shelfDepth": 120.0,
     "shelfTaper": 1.0,
     "addBase": True,
     "addRear": True,
@@ -185,12 +213,14 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "postDepth": 30.0,
     "panelThickness": 3.0,
     "shelfThickness": 2.4,
-    "lipHeight": 16.0,
+    "lipHeight": 24.0,
     "lipThickness": 2.4,
     "dividerSpacing": 32.0,
     "dividerThickness": 1.6,
     "trayRadius": 3.0,
-    "trayTilt": 10.0,
+    "trayTilt": 0.0,
+    "cantileverStep": 24.0,
+    "cantileverClosedGap": 30.0,
     "frontLipRatio": 0.72,
     "pinDiameter": 4.2,
     "lidHeight": 38.0,
@@ -328,24 +358,20 @@ def _level_defaults(index: int, settings: dict[str, Any]) -> dict[str, Any]:
         "lip": True,
         "lipHeight": settings["lipHeight"],
         "insert": "none",
-        "style": "dividers",
+        "style": "containers",
         "containers": 2,
         "color": "shelf",
     }
 
 
 def normalize_settings(raw: dict[str, Any] | None) -> dict[str, Any]:
-    source = dict(DEFAULT_SETTINGS)
-    if raw:
-        source.update(raw)
-        if isinstance(raw.get("colors"), dict):
-            source["colors"] = {**DEFAULT_SETTINGS["colors"], **raw["colors"]}
-    system = _choice(source.get("system"), list(SYSTEM_PRESETS), "keychain")
+    raw = raw if isinstance(raw, dict) else {}
+    system = _choice(raw.get("system"), list(SYSTEM_PRESETS), "keychain")
     preset = SYSTEM_PRESETS[system]
     settings = copy.deepcopy(DEFAULT_SETTINGS)
     settings.update(preset)
-    settings.update({key: value for key, value in source.items() if key not in {"colors", "levelConfigs"}})
-    settings["colors"] = {**DEFAULT_SETTINGS["colors"], **(source.get("colors") or {})}
+    settings.update({key: value for key, value in raw.items() if key not in {"colors", "levelConfigs"}})
+    settings["colors"] = {**DEFAULT_SETTINGS["colors"], **(raw.get("colors") if isinstance(raw.get("colors"), dict) else {})}
     settings["system"] = system
     settings["mode"] = _choice(settings.get("mode"), ["3d", "laser"], "3d")
     settings["width"] = _number(settings.get("width"), 170.0, 120.0, 900.0)
@@ -364,12 +390,14 @@ def normalize_settings(raw: dict[str, Any] | None) -> dict[str, Any]:
     settings["postDepth"] = _number(settings.get("postDepth"), 30.0, 8.0, 80.0)
     settings["panelThickness"] = _number(settings.get("panelThickness"), 3.0, 1.5, 20.0)
     settings["shelfThickness"] = _number(settings.get("shelfThickness"), 2.4, 1.2, 20.0)
-    settings["lipHeight"] = _number(settings.get("lipHeight"), 16.0, 8.0, 60.0)
+    settings["lipHeight"] = _number(settings.get("lipHeight"), 24.0, 16.0, 60.0)
     settings["lipThickness"] = _number(settings.get("lipThickness"), 2.4, 1.0, 12.0)
     settings["dividerSpacing"] = _number(settings.get("dividerSpacing"), 32.0, 18.0, 120.0)
     settings["dividerThickness"] = _number(settings.get("dividerThickness"), 1.6, 0.8, 6.0)
     settings["trayRadius"] = _number(settings.get("trayRadius"), 3.0, 0.0, 20.0)
-    settings["trayTilt"] = _number(settings.get("trayTilt"), 10.0, 0.0, 30.0)
+    settings["trayTilt"] = _number(settings.get("trayTilt"), 0.0, 0.0, 20.0)
+    settings["cantileverStep"] = _number(settings.get("cantileverStep"), 24.0, 8.0, 70.0)
+    settings["cantileverClosedGap"] = _number(settings.get("cantileverClosedGap"), 30.0, 12.0, 80.0)
     settings["frontLipRatio"] = _number(settings.get("frontLipRatio"), 0.72, 0.3, 1.0)
     settings["pinDiameter"] = _number(settings.get("pinDiameter"), 4.2, 2.0, 10.0)
     settings["lidHeight"] = _number(settings.get("lidHeight"), 38.0, 16.0, 160.0)
@@ -457,7 +485,7 @@ def normalize_settings(raw: dict[str, Any] | None) -> dict[str, Any]:
     settings["includePrintedKit"] = _boolean(settings.get("includePrintedKit"), False)
 
     defaults = [_level_defaults(index, settings) for index in range(settings["levels"])]
-    raw_levels = raw.get("levelConfigs") if raw and isinstance(raw.get("levelConfigs"), list) else []
+    raw_levels = raw.get("levelConfigs") if isinstance(raw.get("levelConfigs"), list) else []
     levels: list[dict[str, Any]] = []
     for index, base in enumerate(defaults):
         item = dict(base)

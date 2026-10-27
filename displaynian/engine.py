@@ -1339,24 +1339,33 @@ def _transport(settings: dict[str, Any], parts: list[dict[str, Any]]) -> None:
 
 def _bom(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
-    sides = sum(1 for part in parts if part["id"] in {"side-left", "side-right"})
     base = sum(1 for part in parts if part["id"] == "base")
-    trays = sum(1 for part in parts if part["id"].startswith("tray-") and part["category"] == "shelf" and not part["id"].endswith("-lip"))
-    lips = sum(1 for part in parts if part["id"].endswith("-lip"))
+    links = sum(1 for part in parts if part["id"].startswith("link-"))
+    pins = sum(1 for part in parts if part["id"].startswith("pin-"))
+    trays = sum(1 for part in parts if part["id"].startswith("tray-") and part["category"] == "shelf")
     panels = sum(1 for part in parts if part["category"] == "panel")
     hooks = sum(1 for part in parts if part["category"] == "hook")
     containers = sum(1 for part in parts if "-container-" in part["id"] and not part["id"].endswith("-lid"))
     lids = sum(1 for part in parts if part["id"].endswith("-lid"))
     if base:
         items.append({"name": "Base", "quantity": base, "detail": f"{settings['baseHeight']:.1f} mm"})
-    if sides:
-        items.append({"name": "Laterales", "quantity": sides, "detail": f"{settings['sideThickness']:.1f} mm"})
+    if links:
+        items.append(
+            {
+                "name": "Brazos cantilever",
+                "quantity": links,
+                "detail": f"Ranura Ø{settings['pinDiameter']:.1f} · {settings['sideThickness']:.1f} mm",
+            }
+        )
+    if pins:
+        items.append({"name": "Pasadores impresos", "quantity": pins, "detail": f"Ø{settings['pinDiameter']:.1f} mm"})
     if trays:
-        items.append({"name": "Bandejas", "quantity": trays, "detail": f"{settings['shelfThickness']:.1f} mm"})
-    if lips:
-        items.append({"name": "Labios", "quantity": lips, "detail": f"{settings['lipHeight']:.0f} mm"})
+        items.append({"name": "Bandejas", "quantity": trays, "detail": f"{settings['lipHeight']:.0f} mm alto"})
     if panels:
-        items.append({"name": "Paneles", "quantity": panels, "detail": f"{settings['panelThickness']:.1f} mm"})
+        items.append({"name": "Paneles traseros", "quantity": panels, "detail": f"{settings['panelThickness']:.1f} mm"})
+    clips = sum(1 for part in parts if part["id"].startswith("panel-clip-"))
+    if clips:
+        items.append({"name": "Clips de panel", "quantity": clips, "detail": "Base"})
     if containers:
         items.append({"name": "Contenedores", "quantity": containers, "detail": "Extraíbles"})
     if lids:
@@ -1365,8 +1374,8 @@ def _bom(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[str
         items.append({"name": "Ganchos", "quantity": hooks, "detail": settings["hookType"]})
     if settings["feet"]:
         items.append({"name": "Pies", "quantity": 4, "detail": "Base"})
-    if settings["transportLid"]:
-        items.append({"name": "Caja de transporte", "quantity": 1, "detail": "Con asa"})
+    if settings["transport"] and settings["transportLid"]:
+        items.append({"name": "Caja de transporte", "quantity": 1, "detail": "Con asa" if settings["transportHandle"] else "Sin asa"})
     return items
 
 
@@ -1417,44 +1426,86 @@ def _checks(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[
         if settings["dividerThickness"] < settings["nozzle"] * 1.8:
             add("warn", "Divisores finos", "Los divisores de menos de 1,8 mm pueden romperse al desmoldar. Sube el grosor.", "divider-thin")
         if settings["backPanel"] != "none":
-            panel_w = settings["width"] / max(1, settings["panelSplit"])
+            panel_w = (settings["width"] - 2.0 * settings["sideThickness"] - 1.0) / max(1, settings["panelSplit"])
             panel_h = settings["backHeight"] / max(1, settings["panelRows"])
             if panel_w > settings["bedWidth"] or panel_h > settings["bedDepth"]:
                 add("warn", "Panel sin dividir", f"El panel queda en {panel_w:.0f} × {panel_h:.0f} mm. Sube columnas o filas del panel.", "panel-split")
             else:
                 add("ok", "Panel imprimible", f"Panel en {panel_w:.0f} × {panel_h:.0f} mm por pieza.", "panel-split")
-        height = settings["baseHeight"] + settings["backHeight"]
-        footprint = settings["width"] * settings["depth"]
+        levels = [level for level in settings["levelConfigs"][: settings["levels"]] if level.get("enabled", True)]
+        open_height = settings["baseHeight"] + settings["lipHeight"]
+        for index, level in enumerate(levels[1:], start=1):
+            open_height += max(24.0, level.get("gap", settings["levelSpacing"]))
+        height = max(open_height, settings["baseHeight"] + settings["backHeight"] if settings["backPanel"] != "none" else 0.0)
         if height > 1.8 * min(settings["width"], settings["depth"]):
-            add("warn", "Riesgo de vuelco", "El display es alto para su huella. Baja la altura, añade lastre o usa correas.", "stability")
+            add("warn", "Riesgo de vuelco", "El display es alto para su huella. Baja la altura, añade lastre o usa una base más profunda.", "stability")
         else:
             add("ok", "Estabilidad razonable", "Huella y altura dentro de la proporción recomendada.", "stability")
-        trays = sum(1 for part in parts if part["id"].startswith("tray-") and part["category"] == "shelf" and not part["id"].endswith("-lip"))
-        if trays >= settings["levels"]:
-            add("ok", "Estructura flat-pack", f"{trays} bandejas en ranuras laterales, sin tornillos.", "flatpack")
+        trays = sum(1 for part in parts if part["id"].startswith("tray-") and part["category"] == "shelf")
+        if trays >= len(levels):
+            add("ok", "Bandejas completas", f"{trays} bandejas unidas por brazos ranurados.", "cantilever")
         else:
-            add("warn", "Faltan bandejas", "Activa los niveles para completar la estructura.", "flatpack")
-        level_configs = settings.get("levelConfigs", [])
-        tight = [level["gap"] for level in level_configs[1:] if level.get("enabled", True) and level.get("gap", settings["levelSpacing"]) < settings["lipHeight"] + 6.0]
+            add("warn", "Faltan bandejas", "Activa los niveles para completar el cantilever.", "cantilever")
+        if len(levels) > 1:
+            expected_links = (len(levels) - 1) * 2
+            links = sum(1 for part in parts if part["id"].startswith("link-"))
+            pins = sum(1 for part in parts if part["id"].startswith("pin-"))
+            if links < expected_links:
+                add("warn", "Faltan brazos", f"Se esperaban {expected_links} brazos y hay {links}.", "links")
+            else:
+                add("ok", "Brazos y pasadores", f"{links} brazos ranurados y {pins} pasadores; el mecanismo queda montado.", "links")
+        else:
+            add("info", "Un solo nivel", "Añade un segundo nivel para activar el mecanismo cantilever.", "links")
+        minimum_closed = settings["lipHeight"] + settings["shelfThickness"] + 1.5
+        if settings["cantileverClosedGap"] < minimum_closed:
+            add(
+                "info",
+                "Plegado ajustado",
+                f"La separación plegada se ajusta a {minimum_closed:.0f} mm para que las bandejas no choquen.",
+                "closed-gap",
+            )
+        tight: list[float] = []
+        travel: list[float] = []
+        for level in levels[1:]:
+            gap = max(24.0, level.get("gap", settings["levelSpacing"]))
+            if gap < settings["lipHeight"] + 6.0:
+                tight.append(gap)
+            dz_pin = settings["lipHeight"] * 0.48
+            d_open = math.hypot(settings["cantileverStep"], gap + dz_pin)
+            d_closed = max(settings["cantileverClosedGap"], minimum_closed) + dz_pin
+            if abs(d_open - d_closed) < 6.0:
+                travel.append(gap)
         if tight:
             add("warn", "Niveles demasiado juntos", f"Hay {len(tight)} nivel(es) con menos de {settings['lipHeight'] + 6:.0f} mm. Las bandejas pueden chocar al plegar.", "level-gap")
-        if any(level.get("style") == "containers" for level in level_configs):
+        if travel:
+            add("warn", "Recorrido corto", "La diferencia entre abierto y plegado es pequeña; reduce la separación plegada o aumenta el paso.", "link-travel")
+        if settings["cantileverStep"] < 12.0:
+            add("warn", "Paso corto", "Un paso de menos de 12 mm apenas escalona las bandejas. Sube el paso cantilever.", "step")
+        if settings["pinDiameter"] < 3.5:
+            add("warn", "Pasador fino", "Un pasador de menos de 3,5 mm puede romperse al plegar. Sube el diámetro.", "pin")
+        if len(levels) >= 4:
+            dz_pin = settings["lipHeight"] * 0.48
+            longest = max(
+                math.hypot(settings["cantileverStep"], max(24.0, level.get("gap", settings["levelSpacing"])) + dz_pin)
+                for level in levels[1:]
+            )
+            lane_cycle = 3.0 * max(settings["cantileverClosedGap"], minimum_closed)
+            if longest + 14.0 > lane_cycle:
+                add("warn", "Brazos largos al plegar", "Los brazos de niveles alternos pueden tocarse. Reduce la separación abierta o usa menos niveles.", "link-clearance")
+        if any(level.get("style") == "containers" for level in levels):
             add("ok", "Contenedores individuales", "Las bandejas usan cajas extraíbles en lugar de separadores.", "containers")
-        tray_splits = max(1, int(np.ceil((settings["width"] - 2 * settings["sideThickness"] - 2 * settings["clearance"]) / max(80.0, settings["bedWidth"] - 8.0)))) if settings.get("autoSplit", True) else 1
-        base_splits = max(1, int(np.ceil(settings["width"] / max(80.0, settings["bedWidth"] - 8.0)))) if settings.get("autoSplit", True) else 1
-        case_splits = max(1, int(np.ceil(settings["width"] / max(80.0, settings["bedWidth"] - 8.0)))) if settings.get("autoSplit", True) else 1
-        if settings.get("autoSplit", True) and max(tray_splits, base_splits, case_splits) > 1:
-            add("info", "Piezas divididas", f"Bandejas ×{tray_splits}, base ×{base_splits}, caja ×{case_splits}. Usa las placas de unión y tornillos M3.", "auto-split")
-        if settings["hooks"] > 0:
+        if any(level.get("insert") == "bracelet" for level in levels):
+            add("warn", "Inserto de pulseras alto", "El soporte de pulseras sobresale de la bandeja; pliega despacio o usa una bandeja más alta.", "insert-height")
+        if settings["hooks"] > 0 and settings["backPanel"] != "none":
             capacity = max(1, int((settings["backHeight"] - 40) / 42.0) * max(1, int((settings["width"] - 40) / 40.0)))
             if settings["hooks"] > capacity:
                 add("warn", "Demasiados ganchos", f"El panel admite aproximadamente {capacity} ganchos.", "hook-capacity")
             else:
                 add("ok", "Ganchos colocados", f"{settings['hooks']} ganchos sobre el panel.", "hook-capacity")
-        if not settings["addBase"] or not settings["addFront"] or not settings["addRear"]:
-            add("warn", "Estructura incompleta", "Has desactivado base, enlaces o panel. El display puede no sostenerse solo.", "structure-off")
+        if not settings["addBase"]:
+            add("warn", "Sin base", "El cantilever necesita una base para apoyar la bandeja inferior y la caja de transporte.", "structure-off")
     else:
-        add("ok", "Modo láser", "El modo láser genera paneles 2D y deja los enlaces/pasadores como kit impreso opcional.", "laser")
+        add("ok", "Modo láser", "El modo láser genera bandejas y paneles planos; el mecanismo cantilever se imprime en 3D.", "laser")
         if settings["livingHinge"] and settings["laserThickness"] > 4.0:
             add("warn", "Bisagra viva gruesa", "La bisagra viva es fiable en chapa de 3–4 mm; para 6 mm usa el kit de bisagras impresas.", "hinge-thickness")
         if settings["laserThickness"] <= 4.0:
@@ -1493,7 +1544,7 @@ def _wire_parts(parts: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _assemble(settings: dict[str, Any]) -> list[dict[str, Any]]:
-    from .flatpack import build_parts
+    from .cantilever import build_parts
 
     return build_parts(settings, _part)
 
@@ -1540,12 +1591,17 @@ def build(payload: dict[str, Any]) -> dict[str, Any]:
     material = MATERIAL_PROFILES[settings["material"]]
     shell_factor = 0.58 + settings["infill"] / 100.0 * 0.42
     grams = total_volume / 1000.0 * material["density"] * shell_factor
-    height = max((part["bounds"]["max"][2] for part in wire), default=0.0)
+    height = 0.0
+    for part in wire:
+        if part.get("transport_only"):
+            continue
+        _, high = _matrix_bounds(part, "open_matrix")
+        height = max(height, high[2])
     depth_open = settings["depth"]
     folded_low = [1e9, 1e9, 1e9]
     folded_high = [-1e9, -1e9, -1e9]
     for part in wire:
-        if part.get("fold_hide"):
+        if part.get("fold_hide") or part.get("transport_only"):
             continue
         low, high = _matrix_bounds(part, "fold_matrix")
         for index in range(3):
@@ -1572,7 +1628,7 @@ def build(payload: dict[str, Any]) -> dict[str, Any]:
         "dimensions": {
             "width": settings["width"],
             "depth": depth_open,
-            "height": max(height, settings["baseHeight"] + settings["backHeight"]),
+            "height": max(height, settings["baseHeight"] + settings["backHeight"] if settings["backPanel"] != "none" else 0.0),
             "foldedDepth": folded_depth,
             "foldedHeight": folded_height,
             "levels": settings["levels"],

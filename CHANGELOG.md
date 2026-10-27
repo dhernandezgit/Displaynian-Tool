@@ -1,3 +1,29 @@
+## 0.6.0 — 2026-10-27
+
+Cambio a expositor cantilever real, plegable sin desmontar.
+
+### 3D
+
+- Dos brazos ranurados por hueco, con pasadores siempre montados.
+- Brazos alternan delante, centro y detrás para no chocar al plegar.
+- Bandejas escalonadas en abierto y apiladas en plegado.
+- Panel trasero opcional desmontable, se guarda plano sobre la pila.
+- Caja de transporte dimensionada para cubrir brazos, pila y panel.
+- Presets cantilever con paso, separación plegada y alturas propias.
+- Brazos planos para imprimir sin soportes; pasadores y tolerancias ajustables.
+
+### Interfaz
+
+- Vistas Montado, Plegado, Transporte y Despiece con posiciones exactas.
+- Controles de paso cantilever, separación plegada, ancho/grosor de brazo y pasador.
+- Ayuda, catálogo y textos adaptados al mecanismo.
+- Guardado local v5.
+
+### Calidad
+
+- 31 tests, typecheck y build.
+- Comprobaciones de recorrido, choques, pasadores, cama y estabilidad.
+
 # Changelog
 
 ## 0.5.0 — 2026-10-27

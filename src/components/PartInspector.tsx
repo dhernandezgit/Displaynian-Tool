@@ -24,13 +24,13 @@ function checkIcon(level: string) {
 }
 
 function printHint(category: string): string {
-  if (category === "joint") return "Enlaces: imprimir tumbados, 4 mm de grosor, sin soportes. El pasador va aparte.";
+  if (category === "joint") return "Brazos: imprimir tumbados, 4 mm de grosor, sin soportes. Los pasadores van aparte.";
   if (category === "hook") return "Ganchos: imprimir de lado, con las capas recorriendo el brazo.";
   if (category === "shelf") return "Bandejas: base en la cama, paredes de 2,4 mm y sin soportes.";
   if (category === "panel") return "Panel: 3 mm, en plano. Divide en filas/columnas si supera la cama.";
   if (category === "insert") return "Insertos: base plana; conos y cilindros en vertical.";
   if (category === "transport") return "Caja: imprimir con la abertura hacia abajo y el asa arriba; sin soportes.";
-  if (category === "hardware") return "Pasadores: verticales, cabeza en la cama. Pies: en plano.";
+  if (category === "hardware") return "Pasadores: tumbados, sin soportes. Pies: en plano.";
   return "Apoya la cara más grande en la cama y revisa los voladizos.";
 }
 
@@ -96,7 +96,7 @@ export default function PartInspector({
             <div><b>{laser.kerf.toFixed(2)}</b><span>mm kerf</span></div>
             <div><b>{laser.printedKit ? "Sí" : "No"}</b><span>kit 3D</span></div>
           </div>
-          <p className="panel-note">Las láminas son el flat-pack de corte. Los enlaces y pasadores del modo 3D se incluyen como kit impreso opcional.</p>
+          <p className="panel-note">Las láminas son el kit plano de corte. Los brazos y pasadores del cantilever se incluyen como kit impreso opcional.</p>
           {laser.overflow.length ? <p className="panel-note">No caben: {laser.overflow.join(", ")}</p> : null}
         </section>
       ) : selected ? (
