@@ -40,7 +40,7 @@ import HelpDialog from "./components/HelpDialog";
 import StatusBar from "./components/StatusBar";
 import Logo from "./components/Logo";
 
-const SETTINGS_KEY = "displaynian-settings-v2";
+const SETTINGS_KEY = "displaynian-settings-v3";
 const THEME_KEY = "displaynian-theme";
 const PROJECT_NAME_KEY = "displaynian-project-name";
 
@@ -197,6 +197,9 @@ export default function App() {
       }
       if (patch.depth !== undefined) {
         next.levelConfigs = next.levelConfigs.map((level) => ({ ...level, depth: Math.min(level.depth, next.depth - 8) }));
+      }
+      if (patch.levelSpacing !== undefined) {
+        next.levelConfigs = next.levelConfigs.map((level) => ({ ...level, gap: patch.levelSpacing as number }));
       }
       if (patch.mode === "laser") {
         next.laserThickness = current.laserThickness || 3;
@@ -433,7 +436,7 @@ export default function App() {
             {!showSheets ? (
               <>
                 <div className="view-modes">
-                  <button type="button" className={viewMode === "open" ? "is-active" : ""} onClick={() => setViewMode("open")} title="Abierto"><Box size={15} /> Abierto</button>
+                  <button type="button" className={viewMode === "open" ? "is-active" : ""} onClick={() => setViewMode("open")} title="Abierto"><Box size={15} /> Desplegado</button>
                   <button type="button" className={viewMode === "fold" ? "is-active" : ""} onClick={() => setViewMode("fold")} title="Plegado"><FoldHorizontal size={15} /> Plegado</button>
                   <button type="button" className={viewMode === "transport" ? "is-active" : ""} onClick={() => setViewMode("transport")} title="Transporte"><Luggage size={15} /> Transporte</button>
                   <button type="button" className={viewMode === "exploded" ? "is-active" : ""} onClick={() => setViewMode("exploded")} title="Despiece"><Expand size={15} /> Despiece</button>
@@ -451,9 +454,9 @@ export default function App() {
             ) : null}
           </div>
 
-          {!showSheets && (viewMode === "fold" || viewMode === "transport") ? (
+          {!showSheets && viewMode === "fold" ? (
             <div className="fold-strip">
-              <span>Plegado</span>
+              <span>Desplegado ↔ Plegado</span>
               <input
                 type="range"
                 min={0}
@@ -515,7 +518,15 @@ export default function App() {
             {buildError ? <div className="error-chip">{buildError}</div> : null}
           </div>
           <div className="stage-hint">
-            {showSheets ? "Láser: SVG y DXF por hoja. Mide espesor y kerf antes de cortar." : settings.mode === "3d" ? "Bandejas finas, enlaces tumbados y pasadores en vertical. Prueba un enlace antes del set completo." : "Montaje de referencia. Cambia a Láminas para exportar el corte."}
+            {showSheets
+              ? "Láser: SVG y DXF por hoja. Mide espesor y kerf antes de cortar."
+              : viewMode === "open"
+                ? "Desplegado: bandejas separadas y enlaces en vertical."
+                : viewMode === "fold"
+                  ? "Plegado: enlaces girados y bandejas apiladas; las uniones siguen montadas."
+                  : viewMode === "transport"
+                    ? "Transporte: caja cerrada con asa. Las uniones quedan dentro."
+                    : "Despiece: piezas separadas para revisar el montaje."}
           </div>
         </section>
 

@@ -7,11 +7,14 @@ export interface LevelConfig {
   enabled: boolean;
   type: string;
   height: number;
+  gap: number;
   depth: number;
   angle: number;
   lip: boolean;
   lipHeight: number;
   insert: string;
+  style: string;
+  containers: number;
   color: string;
 }
 
@@ -84,6 +87,7 @@ export interface AppSettings {
   signText: string;
   testCoupons: boolean;
   autoSplit: boolean;
+  containerLids: boolean;
   awning: boolean;
   accessoryTray: boolean;
   insert: string;

@@ -1,6 +1,6 @@
 # Displaynian
 
-**Versión 0.3.0** · Displays plegables, modulares y paramétricos para ferias, mercados y tiendas.
+**Versión 0.4.0** · Displays plegables, modulares y paramétricos para ferias, mercados y tiendas.
 
 Displaynian genera estructuras de exposición a partir de parámetros. El motor de geometría está escrito en **Python** y se ejecuta en el navegador con **Pyodide/WebAssembly**. El frontend usa **React + Three.js**. No hay servidor, no se suben archivos y no hace falta cuenta.
 
@@ -15,14 +15,14 @@ Displaynian no es un catálogo de modelos cerrados: es un generador. Cambias med
 
 ### Sistemas de partida
 
-- **Llaveros y colgantes** con bandejas de compartimentos, enlaces, pasadores y panel SKÅDIS.
+- **Llaveros y colgantes** con bandejas de compartimentos o contenedores individuales, enlaces y pasadores. El panel SKÅDIS es opcional y está apagado por defecto.
 - **Pegatinas, postales y tarjetas** con bandejas amplias y poco profundas.
 - **Joyería** con insertos de anillos, pendientes, pulseras y collares.
 - **Posavasos** con raíles y topes.
 - **Marcapáginas** con divisores de cuatro compartimentos.
 - **Bolígrafos y herramientas** con inserto de seis huecos.
 - **Sistema mixto** para combinar todo.
-- **Wide 340 / Narrow 230** y **3/4/5 bandejas** como variantes rápidas. Wide 340 se divide automáticamente para camas de 256 mm.
+- **Formato compacto 170 × 160 mm** por defecto, **Wide 340 / Narrow 230** y **3/4/5 bandejas** como variantes rápidas. Wide 340 se divide automáticamente para camas de 256 mm.
 - **Auto-división** de base, bandejas y tapa para camas pequeñas, con placas de unión y tornillos M3.
 
 ### Todo es opcional y editable
@@ -42,18 +42,20 @@ La altura y el fondo de bandeja se controlan de forma global para que los enlace
 
 ### Plegado y transporte
 
-- **Acordeón real** con cuatro enlaces por nivel y pasadores impresos.
-- **Auto-división** de base, bandejas y tapa si superan la cama, con placas de unión.
-- Vistas **Abierto**, **Plegado**, **Transporte** y **Despiece**.
-- Animación de plegado con control manual.
-- Tapa encajada sobre las bandejas y asa recortada.
-- Panel trasero SKÅDIS con ranuras de 5 × 15 mm, paso 40 mm y desfase 20 mm.
-- Ganchos SKÅDIS y de rejilla metálica.
-- Los enlaces se ocultan en la vista plegada para mostrar el paquete limpio.
+- **Acordeón real** con cuatro enlaces por nivel y pasadores impresos. Los enlaces y pasadores **no desaparecen**: siguen montados en Desplegado y Plegado.
+- **Auto-división** de base, bandejas y caja si superan la cama, con placas de unión.
+- Vistas **Desplegado**, **Plegado**, **Transporte** y **Despiece**.
+- **Plegado** muestra el mecanismo y las uniones; **Transporte** muestra una caja cerrada con asa, más compacta y protectora.
+- Separación **independiente por nivel**.
+- Contenedores individuales extraíbles, con tapa opcional, en lugar de separadores.
+- Panel trasero SKÅDIS **opcional**, apagado por defecto.
+- Ganchos SKÅDIS y de rejilla metálica cuando se activa el panel.
 
 ### Modo 3D
 
-- Bandejas de **2,4 mm** de pared, divisoras de **1,8 mm**, enlaces de **4 mm** y pasadores de **4,2 mm**.
+- Bandejas de **2,4 mm** de pared, divisoras de **1,6 mm**, enlaces de **4 mm** y pasadores de **4,2 mm**.
+- Contenedores individuales de pared fina con tapas opcionales.
+- Caja de transporte cerrada que cubre el conjunto plegado.
 - Perfiles de impresora A1 Mini, 220 genérica, A1/P1S/X1C, H2D/H2S y cama personalizada.
 - Materiales PLA, PETG y ASA.
 - Avisos de cama, paredes finas, divisores, panel, estabilidad, enlaces y pasadores.
@@ -64,6 +66,7 @@ La altura y el fondo de bandeja se controlan de forma global para que los enlace
 - Materiales de 3 a 6 mm, espesor real y kerf configurables.
 - Flat-pack de bandejas/paneles con finger joints y encajes.
 - **Laterales con alas plegables** unidas por línea de plegado; las bandejas se apoyan en ellas.
+- Separación por nivel compatible con los laterales.
 - **Divisores de bandeja** para separar producto.
 - SVGs y DXF por hoja con capas de corte y líneas de plegado.
 - Nesting en hojas A4, A3, 600 × 400, 900 × 600 o personalizadas.
@@ -133,6 +136,7 @@ La app queda en `https://dhernandezgit.github.io/Displaynian-Tool/web/`.
 - Mide el espesor real del material y el kerf de tu máquina.
 - Para plegado frecuente usa PETG o ASA; el PLA puede fatigarse.
 - Imprime un enlace y un pasador de prueba antes del set completo.
+- El panel SKÅDIS no es necesario para el sistema de bandejas; si lo activas, comprueba que los ganchos quedan accesibles.
 - Las alas del modo láser se pliegan mejor en chapa de 3–4 mm; en 6 mm pueden agrietarse.
 - Los enlaces se imprimen tumbados y los pasadores en vertical.
 - Los ganchos se imprimen de lado para que las capas recorran la dirección de carga.

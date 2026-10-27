@@ -29,7 +29,7 @@ function printHint(category: string): string {
   if (category === "shelf") return "Bandejas: base en la cama, paredes de 2,4 mm y sin soportes.";
   if (category === "panel") return "Panel: 3 mm, en plano. Divide en filas/columnas si supera la cama.";
   if (category === "insert") return "Insertos: base plana; conos y cilindros en vertical.";
-  if (category === "transport") return "Tapa: boca abajo; el hueco del asa no necesita soportes.";
+  if (category === "transport") return "Caja: imprimir con la abertura hacia abajo y el asa arriba; sin soportes.";
   if (category === "hardware") return "Pasadores: verticales, cabeza en la cama. Pies: en plano.";
   return "Apoya la cara más grande en la cama y revisa los voladizos.";
 }

@@ -1350,6 +1350,12 @@ def _bom(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[str
         items.append({"name": "Bandejas", "quantity": trays, "detail": f"{settings['lipHeight']:.0f} mm alto"})
     if panels:
         items.append({"name": "Paneles traseros", "quantity": panels, "detail": f"{settings['panelThickness']:.1f} mm"})
+    containers = sum(1 for part in parts if "-container-" in part["id"] and not part["id"].endswith("-lid"))
+    if containers:
+        items.append({"name": "Contenedores individuales", "quantity": containers, "detail": "Extraíbles"})
+        lids = sum(1 for part in parts if part["id"].endswith("-lid"))
+        if lids:
+            items.append({"name": "Tapas de contenedor", "quantity": lids, "detail": "Extraíbles"})
     splices = sum(1 for part in parts if "splice" in part["id"])
     if splices:
         items.append({"name": "Tornillos M3 × 10 + tuercas", "quantity": splices * 4, "detail": "Uniones de base/bandeja"})
@@ -1360,8 +1366,8 @@ def _bom(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[str
     if settings["feet"]:
         items.append({"name": "Pies", "quantity": 4, "detail": "Base"})
     if settings["transportLid"]:
-        lids = sum(1 for part in parts if part["id"].startswith("lid"))
-        items.append({"name": "Tapa de transporte", "quantity": max(1, lids), "detail": "Con asa" if settings["transportHandle"] else "Sin asa"})
+        cases = sum(1 for part in parts if part["id"].startswith("transport-case"))
+        items.append({"name": "Caja de transporte", "quantity": max(1, cases), "detail": "Con asa" if settings["transportHandle"] else "Sin asa"})
     return items
 
 
@@ -1432,11 +1438,17 @@ def _checks(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[
                 add("ok", "Enlaces completos", f"{links} enlaces y {sum(1 for part in parts if part['id'].startswith('pin-'))} pasadores.", "links")
         if settings["pinDiameter"] < 3.5:
             add("warn", "Pasador fino", "Un pasador de menos de 3,5 mm puede romperse al plegar. Sube el diámetro.", "pin")
-        tray_splits = max(1, int(np.ceil((settings["width"] - 2 * settings["sideThickness"] - 2 * settings["clearance"]) / max(80.0, settings["bedWidth"] - 20.0)))) if settings.get("autoSplit", True) else 1
-        base_splits = max(1, int(np.ceil(settings["width"] / max(80.0, settings["bedWidth"] - 16.0)))) if settings.get("autoSplit", True) else 1
-        lid_splits = max(1, int(np.ceil((settings["width"] + 4.0) / max(80.0, settings["bedWidth"] - 16.0)))) if settings.get("autoSplit", True) else 1
-        if settings.get("autoSplit", True) and max(tray_splits, base_splits, lid_splits) > 1:
-            add("info", "Piezas divididas", f"Bandejas ×{tray_splits}, base ×{base_splits}, tapa ×{lid_splits}. Usa las placas de unión y tornillos M3.", "auto-split")
+        level_configs = settings.get("levelConfigs", [])
+        tight = [level["gap"] for level in level_configs[1:] if level.get("enabled", True) and level.get("gap", settings["levelSpacing"]) < settings["lipHeight"] + 6.0]
+        if tight:
+            add("warn", "Niveles demasiado juntos", f"Hay {len(tight)} nivel(es) con menos de {settings['lipHeight'] + 6:.0f} mm. Las bandejas pueden chocar al plegar.", "level-gap")
+        if any(level.get("style") == "containers" for level in level_configs):
+            add("ok", "Contenedores individuales", "Las bandejas usan cajas extraíbles en lugar de separadores.", "containers")
+        tray_splits = max(1, int(np.ceil((settings["width"] - 2 * settings["sideThickness"] - 2 * settings["clearance"]) / max(80.0, settings["bedWidth"] - 8.0)))) if settings.get("autoSplit", True) else 1
+        base_splits = max(1, int(np.ceil(settings["width"] / max(80.0, settings["bedWidth"] - 8.0)))) if settings.get("autoSplit", True) else 1
+        case_splits = max(1, int(np.ceil(settings["width"] / max(80.0, settings["bedWidth"] - 8.0)))) if settings.get("autoSplit", True) else 1
+        if settings.get("autoSplit", True) and max(tray_splits, base_splits, case_splits) > 1:
+            add("info", "Piezas divididas", f"Bandejas ×{tray_splits}, base ×{base_splits}, caja ×{case_splits}. Usa las placas de unión y tornillos M3.", "auto-split")
         if settings["hooks"] > 0:
             capacity = max(1, int((settings["backHeight"] - 40) / 42.0) * max(1, int((settings["width"] - 40) / 40.0)))
             if settings["hooks"] > capacity:

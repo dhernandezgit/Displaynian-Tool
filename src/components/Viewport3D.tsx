@@ -337,8 +337,11 @@ export const Viewport3D = forwardRef<Viewport3DHandle, Props>(function Viewport3
 
   useEffect(() => {
     for (const object of partsRef.current) {
-      const hiddenForFold = object.part.fold_hide && (viewMode === "fold" || viewMode === "transport");
-      object.holder.visible = (!object.part.transport_only || viewMode === "transport") && !hiddenForFold;
+      if (viewMode === "transport") {
+        object.holder.visible = object.part.group === "base" || object.part.group === "transport";
+      } else {
+        object.holder.visible = !object.part.transport_only;
+      }
       const offset = new THREE.Vector3();
       if (viewMode === "exploded") {
         offset.set(object.part.explode[0], object.part.explode[1], object.part.explode[2]).multiplyScalar(explodeAmount);

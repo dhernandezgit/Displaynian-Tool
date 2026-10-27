@@ -73,6 +73,43 @@ class Mesh:
             return Mesh(self.vertices, self.faces[:, ::-1].copy())
         return self
 
+    def orient_consistent(self) -> "Mesh":
+        if self.empty:
+            return self
+        faces = self.faces.copy()
+        edge_map: dict[tuple[int, int], list[tuple[int, int]]] = {}
+        for face_index, face in enumerate(faces):
+            for a, b in ((face[0], face[1]), (face[1], face[2]), (face[2], face[0])):
+                key = (int(a), int(b)) if a < b else (int(b), int(a))
+                direction = 1 if (int(a), int(b)) == key else -1
+                edge_map.setdefault(key, []).append((face_index, direction))
+        visited = np.zeros(len(faces), dtype=bool)
+        flips = np.zeros(len(faces), dtype=bool)
+        for start in range(len(faces)):
+            if visited[start]:
+                continue
+            visited[start] = True
+            queue = [start]
+            while queue:
+                face_index = queue.pop()
+                face = faces[face_index]
+                for a, b in ((face[0], face[1]), (face[1], face[2]), (face[2], face[0])):
+                    key = (int(a), int(b)) if a < b else (int(b), int(a))
+                    raw_direction = 1 if (int(a), int(b)) == key else -1
+                    effective = raw_direction * (-1 if flips[face_index] else 1)
+                    adjacent = edge_map.get(key, [])
+                    if len(adjacent) != 2:
+                        continue
+                    for neighbor, neighbor_direction in adjacent:
+                        if neighbor == face_index or visited[neighbor]:
+                            continue
+                        desired = -effective
+                        flips[neighbor] = neighbor_direction != desired
+                        visited[neighbor] = True
+                        queue.append(neighbor)
+        faces[flips] = faces[flips][:, ::-1]
+        return Mesh(self.vertices, faces).oriented()
+
     @property
     def bounds(self) -> dict[str, list[float]]:
         if self.empty:
@@ -201,7 +238,7 @@ def extrude_polygon(poly: Polygon | MultiPolygon, z0: float, height: float) -> M
             else:
                 faces.append([a, b, c])
                 faces.append([a, c, d])
-    return Mesh(vertices, np.asarray(faces, dtype=np.int64)).merged().oriented()
+    return Mesh(vertices, np.asarray(faces, dtype=np.int64)).merged().orient_consistent()
 
 
 def extrude_x(poly: Polygon | MultiPolygon, x0: float, width: float) -> Mesh:
@@ -286,7 +323,7 @@ def cone(cx: float, cy: float, z: float, radius: float, height: float, segments:
     for i in range(segments):
         j = (i + 1) % segments
         faces.append([center_bottom, j, i])
-    return Mesh(vertices, np.asarray(faces, dtype=np.int64)).merged().oriented()
+    return Mesh(vertices, np.asarray(faces, dtype=np.int64)).merged().orient_consistent()
 
 
 def matrix_rotate_x(angle_deg: float, pivot: Sequence[float] = (0, 0, 0)) -> np.ndarray:

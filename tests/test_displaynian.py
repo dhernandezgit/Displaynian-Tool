@@ -46,10 +46,10 @@ def test_default_3d_build_is_complete():
     assert result["ok"]
     assert result["mode"] == "3d"
     assert 30 <= len(result["parts"]) <= 80
-    assert result["dimensions"]["width"] == pytest.approx(220, abs=1)
+    assert result["dimensions"]["width"] == pytest.approx(170, abs=1)
     assert result["dimensions"]["levels"] == 4
     tray = next(part for part in result["parts"] if part["id"] == "tray-1")
-    assert tray["dimensions"]["height"] == pytest.approx(38, abs=1)
+    assert tray["dimensions"]["height"] == pytest.approx(34, abs=1)
     assert result["dimensions"]["foldedHeight"] < result["dimensions"]["height"]
     assert sum(1 for part in result["parts"] if part["id"].startswith("link-")) == 12
     assert sum(1 for part in result["parts"] if part["id"].startswith("pin-")) == 24
@@ -175,7 +175,8 @@ def test_normalize_levels_are_preserved_and_clamped():
     settings = normalize_settings(_settings(levels=5, levelSpacing=50))
     assert settings["levels"] == 5
     assert len(settings["levelConfigs"]) == 5
-    assert settings["levelConfigs"][0]["height"] == pytest.approx(50)
+    assert settings["levelConfigs"][0]["height"] == pytest.approx(3)
+    assert settings["levelConfigs"][1]["height"] == pytest.approx(53)
     clamped = normalize_settings(_settings(levels=99))
     assert clamped["levels"] == 6
 
@@ -210,13 +211,14 @@ def test_box_mesh_is_closed():
 def test_extrusion_supports_holes():
     outer = rounded_rect(40, 30, 4)
     hole = rounded_rect(10, 8, 2)
-    mesh = extrude_polygon(outer.difference(hole), 0, 5)
-    assert mesh.volume() > 0
+    ring = outer.difference(hole)
+    mesh = extrude_polygon(ring, 0, 5)
     assert mesh.bounds["max"][2] == pytest.approx(5)
+    assert mesh.volume() == pytest.approx(ring.area * 5, rel=2e-2)
 
 
 def test_sign_and_laser_test_coupons():
-    result = engine.build({"settings": _settings(sign=True, signText="MI MARCA")})
+    result = engine.build({"settings": _settings(sign=True, signText="MI MARCA", backPanel="skadis")})
     assert any(part["id"] == "sign" for part in result["parts"])
     laser = engine.build({"settings": _settings(mode="laser", testCoupons=True, sign=True)})
     names = [name for sheet in laser["laser"]["sheets"] for name in sheet["parts"]]
@@ -242,7 +244,7 @@ def test_wide_auto_split_fits_bed_and_reports_splices():
     assert "base-2" in ids
     assert "tray-1-2" in ids
     assert any(part_id.startswith("tray-1-splice") for part_id in ids)
-    assert any(part_id.startswith("lid-2") for part_id in ids)
+    assert any(part_id.startswith("transport-case-2") for part_id in ids)
     assert any(check["code"] == "auto-split" for check in result["checks"])
 
 
@@ -263,3 +265,43 @@ def test_laser_side_arms_have_cut_and_score_lines():
         assert side["cuts"]
         assert side["scores"]
         assert all(len(line.coords) == 2 for line in side["scores"])
+
+
+def test_per_level_gap_and_containers():
+    from displaynian.params import normalize_settings
+    settings = normalize_settings(_settings(levels=3))
+    settings["levelConfigs"] = [
+        {**settings["levelConfigs"][0], "id": "l1", "name": "Nivel 1", "gap": 0, "style": "containers", "containers": 3},
+        {**settings["levelConfigs"][1], "id": "l2", "name": "Nivel 2", "gap": 72, "style": "containers", "containers": 2},
+        {**settings["levelConfigs"][2], "id": "l3", "name": "Nivel 3", "gap": 40, "style": "empty"},
+    ]
+    result = engine.build({"settings": settings})
+    ids = [part["id"] for part in result["parts"]]
+    assert any("tray-2" in part_id and "container-1" in part_id for part_id in ids)
+    assert any("tray-1" in part_id and "container-3" in part_id for part_id in ids)
+    assert not any("tray-3" in part_id and "container" in part_id for part_id in ids)
+
+
+def test_default_is_compact_and_transport_case_is_closed():
+    from displaynian.params import normalize_settings
+    settings = normalize_settings(_settings())
+    result = engine.build({"settings": settings})
+    ids = {part["id"]: part for part in result["parts"]}
+    assert result["dimensions"]["width"] == pytest.approx(170, abs=1)
+    assert "transport-case-1" in ids
+    assert ids["transport-case-1"]["transport_only"] is True
+    assert not any(part["group"] == "panel" for part in result["parts"])
+    assert not any(part["category"] == "hook" for part in result["parts"])
+    assert result["material_grams"] < 1000
+
+
+def test_per_level_gap_changes_link_lengths():
+    from displaynian.params import normalize_settings
+    settings = normalize_settings(_settings())
+    settings["levelConfigs"][1]["gap"] = 72
+    settings["levelConfigs"][2]["gap"] = 40
+    result = engine.build({"settings": settings})
+    links = {part["id"]: part["dimensions"]["height"] for part in result["parts"] if part["id"].startswith("link-")}
+    assert links["link-1-izq-del"] == pytest.approx(92, abs=1)
+    assert links["link-2-izq-del"] == pytest.approx(60, abs=1)
+    assert links["link-3-izq-del"] == pytest.approx(70, abs=1)

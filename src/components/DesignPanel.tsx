@@ -33,10 +33,10 @@ export default function DesignPanel({
         bedHeight: printer.height,
         width: 170,
         depth: 170,
-        shelfDepth: 140,
-        levelSpacing: 52,
+        shelfDepth: 150,
+        levelSpacing: 50,
         levels: 4,
-        ...fitPanel(printer, 170, 4, 52),
+        ...fitPanel(printer, 170, 4, 50),
       };
     }
     return { printer: printer.id, bedWidth: printer.width, bedDepth: printer.depth, bedHeight: printer.height, ...fitPanel(printer) };
@@ -113,7 +113,7 @@ export default function DesignPanel({
       <LevelsEditor settings={settings} onPatch={onPatch} onLevel={onLevel} />
 
       <Section title="Plegado y transporte" subtitle="Enlaces y pasadores" icon={<FoldHorizontal size={15} />}>
-        <NumberField label="Ángulo de enlaces" value={settings.foldAngle} min={30} max={85} step={1} unit="°" onChange={(value) => onPatch({ foldAngle: value })} hint="68° = pila compacta" />
+        <NumberField label="Ángulo de enlaces" value={settings.foldAngle} min={30} max={85} step={1} unit="°" onChange={(value) => onPatch({ foldAngle: value })} hint="60° = pila compacta y enlaces dentro" />
         <Toggle label="Modo transporte" checked={settings.transport} onChange={(value) => onPatch({ transport: value })} />
         <Toggle label="Tapa" checked={settings.transportLid} onChange={(value) => onPatch({ transportLid: value })} />
         <Toggle label="Asa" checked={settings.transportHandle} onChange={(value) => onPatch({ transportHandle: value })} />

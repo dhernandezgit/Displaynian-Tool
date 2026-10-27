@@ -1,6 +1,34 @@
 # Changelog
 
+## 0.4.0 — 2026-10-27
+
+Movimiento realista, caja de transporte cerrada, formato compacto y bandejas configurables.
+
+### 3D
+
+- **Enlaces siempre visibles y montados** en Desplegado y Plegado; se elimina el ocultado artificial.
+- Movimiento de acordeón con enlaces que giran sobre sus pasadores y bandejas que se apilan.
+- **Transporte** ahora es una caja cerrada con asa, más compacta que el plegado y con las uniones dentro.
+- Formato por defecto **170 × 160 mm**; el panel SKÅDIS queda apagado por defecto.
+- **Separación independiente por nivel**.
+- **Contenedores individuales** con tapas opcionales, en lugar de separadores fijos.
+- Auto-división de base, bandejas y caja para camas pequeñas.
+- Material estimado corregido (volumen de anillos y cajas).
+
+### Interfaz
+
+- “Abierto” pasa a **Desplegado**.
+- Ayuda y pistas de estado explican Desplegado, Plegado y Transporte.
+- Catálogo y editor de niveles adaptados a contenedores.
+- Nuevo guardado local v3 para cargar los valores compactos.
+
+### Calidad
+
+- 28 tests, typecheck y build.
+- Corrección de volumen/watertight en extrusiones con huecos.
+
 ## 0.3.0 — 2026-10-27
+
 
 Auto-división 3D y alas plegables en el modo láser.
 
