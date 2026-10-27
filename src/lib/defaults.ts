@@ -236,6 +236,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   sign: false,
   signText: "DISPLAYNIAN",
   testCoupons: true,
+  autoSplit: true,
   awning: false,
   accessoryTray: false,
   insert: "none",

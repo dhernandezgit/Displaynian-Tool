@@ -1,6 +1,34 @@
 # Changelog
 
+## 0.3.0 — 2026-10-27
+
+Auto-división 3D y alas plegables en el modo láser.
+
+### 3D
+
+- División automática de base, bandejas y tapa cuando superan la cama.
+- Placas de unión bajo las costuras y tornillos M3 + tuercas.
+- Bandejas modulares con paredes dobles en las costuras.
+- Tapa modular con asa puente.
+- Wide 340 ahora se puede imprimir en cama de 256 dividiendo piezas.
+- Ajuste automático de filas/columnas del panel al cambiar de impresora.
+
+### Láser
+
+- Laterales completos con **alas plegables** y líneas de plegado para sostener bandejas.
+- Cortes en U para liberar las alas y marcado de bisagra.
+- Divisores de bandeja con pestañas y ranuras.
+- Cartel de papel, cupón de gancho y galga de kerf.
+- Aviso de alas plegables en espesores mayores de 4 mm.
+
+### Calidad
+
+- 26 tests, typecheck y build.
+- BOM de tornillos M3 para uniones.
+- README y ayuda actualizados.
+
 ## 0.2.0 — 2026-10-27
+
 
 Rediseño completo de la geometría 3D y del modo láser.
 

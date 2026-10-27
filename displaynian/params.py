@@ -408,6 +408,7 @@ def normalize_settings(raw: dict[str, Any] | None) -> dict[str, Any]:
     settings["sign"] = _boolean(settings.get("sign"), False)
     settings["signText"] = str(settings.get("signText") or "DISPLAYNIAN")[:24]
     settings["testCoupons"] = _boolean(settings.get("testCoupons"), True)
+    settings["autoSplit"] = _boolean(settings.get("autoSplit"), True)
     settings["awning"] = _boolean(settings.get("awning"), False)
     settings["accessoryTray"] = _boolean(settings.get("accessoryTray"), True)
     settings["insert"] = _choice(settings.get("insert"), INSERT_TYPES, "none")

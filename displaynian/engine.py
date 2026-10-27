@@ -1350,6 +1350,9 @@ def _bom(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[str
         items.append({"name": "Bandejas", "quantity": trays, "detail": f"{settings['lipHeight']:.0f} mm alto"})
     if panels:
         items.append({"name": "Paneles traseros", "quantity": panels, "detail": f"{settings['panelThickness']:.1f} mm"})
+    splices = sum(1 for part in parts if "splice" in part["id"])
+    if splices:
+        items.append({"name": "Tornillos M3 × 10 + tuercas", "quantity": splices * 4, "detail": "Uniones de base/bandeja"})
     if hooks:
         items.append({"name": "Ganchos", "quantity": hooks, "detail": settings["hookType"]})
     if settings["panelJoiners"] and panels > 1:
@@ -1357,7 +1360,8 @@ def _bom(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[str
     if settings["feet"]:
         items.append({"name": "Pies", "quantity": 4, "detail": "Base"})
     if settings["transportLid"]:
-        items.append({"name": "Tapa de transporte", "quantity": 1, "detail": "Con asa" if settings["transportHandle"] else "Sin asa"})
+        lids = sum(1 for part in parts if part["id"].startswith("lid"))
+        items.append({"name": "Tapa de transporte", "quantity": max(1, lids), "detail": "Con asa" if settings["transportHandle"] else "Sin asa"})
     return items
 
 
@@ -1428,6 +1432,11 @@ def _checks(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[
                 add("ok", "Enlaces completos", f"{links} enlaces y {sum(1 for part in parts if part['id'].startswith('pin-'))} pasadores.", "links")
         if settings["pinDiameter"] < 3.5:
             add("warn", "Pasador fino", "Un pasador de menos de 3,5 mm puede romperse al plegar. Sube el diámetro.", "pin")
+        tray_splits = max(1, int(np.ceil((settings["width"] - 2 * settings["sideThickness"] - 2 * settings["clearance"]) / max(80.0, settings["bedWidth"] - 20.0)))) if settings.get("autoSplit", True) else 1
+        base_splits = max(1, int(np.ceil(settings["width"] / max(80.0, settings["bedWidth"] - 16.0)))) if settings.get("autoSplit", True) else 1
+        lid_splits = max(1, int(np.ceil((settings["width"] + 4.0) / max(80.0, settings["bedWidth"] - 16.0)))) if settings.get("autoSplit", True) else 1
+        if settings.get("autoSplit", True) and max(tray_splits, base_splits, lid_splits) > 1:
+            add("info", "Piezas divididas", f"Bandejas ×{tray_splits}, base ×{base_splits}, tapa ×{lid_splits}. Usa las placas de unión y tornillos M3.", "auto-split")
         if settings["hooks"] > 0:
             capacity = max(1, int((settings["backHeight"] - 40) / 42.0) * max(1, int((settings["width"] - 40) / 40.0)))
             if settings["hooks"] > capacity:
@@ -1440,6 +1449,10 @@ def _checks(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[
         add("ok", "Modo láser", "El modo láser genera paneles 2D y deja los enlaces/pasadores como kit impreso opcional.", "laser")
         if settings["livingHinge"] and settings["laserThickness"] > 4.0:
             add("warn", "Bisagra viva gruesa", "La bisagra viva es fiable en chapa de 3–4 mm; para 6 mm usa el kit de bisagras impresas.", "hinge-thickness")
+        if settings["laserThickness"] <= 4.0:
+            add("ok", "Alas plegables", "Los laterales llevan alas con línea de plegado para sostener las bandejas.", "laser-arms")
+        else:
+            add("warn", "Alas plegables gruesas", "En chapa de más de 4 mm, las alas pueden agrietarse. Usa 3–4 mm o un kit de escuadras impresas.", "laser-arms")
         if settings["kerf"] <= 0:
             add("warn", "Kerf sin definir", "Mide el kerf real y ajusta el encaje antes de cortar.", "kerf")
         else:

@@ -4,7 +4,7 @@ import math
 from typing import Any
 
 from shapely import affinity
-from shapely.geometry import MultiPolygon, Polygon
+from shapely.geometry import LineString, MultiPolygon, Polygon
 from shapely.ops import unary_union
 
 from .mesh import rounded_rect
@@ -107,34 +107,55 @@ def _panel_parts(settings: dict[str, Any]) -> list[dict[str, Any]]:
                 base_holes.append(_rect(x - 11.0, y, 22.0, 6.0, 2.0))
     if settings["ballast"]:
         base_holes.append(_rect(width * 0.28, depth * 0.36, width * 0.44, depth * 0.28, 8.0))
+    for side_x in (0.0, width - t):
+        for y in (20.0, depth / 2.0 - 12.0, depth - 32.0):
+            base_holes.append(_rect(side_x - 1.0, y, t + 2.0, 24.0, 0.8))
     base = _apply_holes(base, base_holes)
     parts.append({"id": "laser-base", "name": "Base", "layer": "cut", "polygons": [base]})
 
-    side_profile = Polygon(
-        [
-            (0.0, 0.0),
-            (depth, 0.0),
-            (depth, top_h),
-            (depth - 20.0, top_h),
-            (depth - 20.0, 24.0),
-            (18.0, 24.0),
-            (18.0, top_h),
-            (0.0, top_h),
-        ]
-    )
-    side_holes: list[Polygon] = []
+    side_profile = rounded_rect(depth, top_h, 5.0)
+    side_tabs: list[Polygon] = []
+    slot_t = settings["laserThickness"] + settings["fingerClearance"]
+    for y in (20.0, depth / 2.0 - 12.0, depth - 32.0):
+        side_tabs.append(_rect(y, -12.0, 24.0, 12.0, 1.0))
+    side_profile = side_profile.union(unary_union(side_tabs))
+    rear_slot = _rect(depth - settings["panelThickness"] - 1.0, 14.0, settings["panelThickness"] + 1.0, top_h - 18.0, 0.5)
+    side_profile = side_profile.difference(rear_slot)
+    side_cuts: list[LineString] = []
+    side_scores: list[LineString] = []
+    arm_len = 36.0
+    arm_width = 36.0
     for level in levels:
-        slot_h = _slot_width(settings, settings["shelfThickness"])
-        yy = min(depth - panel_t - 8.0, level["depth"])
-        side_holes.append(_rect(8.0, level["height"] - slot_h / 2.0, yy, slot_h, 1.5))
-    side_profile = _apply_holes(side_profile, side_holes)
-    side_profile = _dogbones(side_profile, settings["dogbone"] * 0.35)
-    parts.append({"id": "laser-side-a", "name": "Lateral A", "layer": "cut", "polygons": [side_profile]})
-    parts.append({"id": "laser-side-b", "name": "Lateral B", "layer": "cut", "polygons": [affinity.scale(side_profile, xfact=-1, yfact=1, origin=(depth / 2, 0))]})
+        z0 = level["height"] - settings["laserThickness"]
+        z1 = z0 + arm_len
+        for y0 in (26.0, depth - 62.0):
+            y1 = y0 + arm_width
+            side_cuts.append(LineString([(y0, z0), (y0, z1), (y1, z1), (y1, z0)]))
+            side_scores.append(LineString([(y0, z0), (y1, z0)]))
+    side_parts = [
+        {
+            "id": "laser-side-a",
+            "name": "Lateral A",
+            "layer": "cut",
+            "polygons": [side_profile],
+            "cuts": side_cuts,
+            "scores": side_scores,
+        },
+        {
+            "id": "laser-side-b",
+            "name": "Lateral B",
+            "layer": "cut",
+            "polygons": [affinity.scale(side_profile, xfact=-1, yfact=1, origin=(depth / 2, 0))],
+            "cuts": [affinity.scale(line, xfact=-1, yfact=1, origin=(depth / 2, 0)) for line in side_cuts],
+            "scores": [affinity.scale(line, xfact=-1, yfact=1, origin=(depth / 2, 0)) for line in side_scores],
+        },
+    ]
+    parts.extend(side_parts)
 
     panel_cols = max(1, int(settings.get("panelSplit", 1)))
     panel_rows = max(1, int(settings.get("panelRows", 2)))
-    piece_w = (width - 2 * side - 3.0 * (panel_cols - 1)) / panel_cols
+    inner_w = width - 2 * side - 2 * settings["clearance"]
+    piece_w = (inner_w - 3.0 * (panel_cols - 1)) / panel_cols
     piece_h = (back_h - 3.0 * (panel_rows - 1)) / panel_rows
     for row in range(panel_rows):
         for col in range(panel_cols):
@@ -148,7 +169,7 @@ def _panel_parts(settings: dict[str, Any]) -> list[dict[str, Any]]:
             parts.append({"id": f"laser-back-{row + 1}-{col + 1}", "name": f"Panel {row + 1}.{col + 1}", "layer": "cut", "polygons": [back_poly]})
 
     for index, level in enumerate(levels):
-        shelf_w = width
+        shelf_w = inner_w
         shelf_d = level["depth"]
         shelf = rounded_rect(shelf_w, shelf_d, 3.0)
         shelf_holes: list[Polygon] = []
@@ -156,14 +177,33 @@ def _panel_parts(settings: dict[str, Any]) -> list[dict[str, Any]]:
             shelf_holes = _skadis_slots(shelf_w, shelf_d, margin=8.0)
         elif level["type"] == "rail":
             shelf_holes.append(_rect(shelf_w * 0.12, shelf_d * 0.3, shelf_w * 0.76, 5.0, 2.0))
+        divider_count = max(2, int(round(shelf_w / settings["dividerSpacing"])))
+        divider_slots = []
+        for divider_index in range(1, divider_count):
+            divider_x = divider_index * shelf_w / divider_count
+            divider_slots.append(_rect(divider_x - (settings["laserThickness"] + settings["fingerClearance"]) / 2.0, 10.0, settings["laserThickness"] + settings["fingerClearance"], 8.0, 0.4))
+            divider_slots.append(_rect(divider_x - (settings["laserThickness"] + settings["fingerClearance"]) / 2.0, shelf_d - 18.0, settings["laserThickness"] + settings["fingerClearance"], 8.0, 0.4))
+        shelf_holes.extend(divider_slots)
         shelf = _apply_holes(shelf, shelf_holes)
         parts.append({"id": f"laser-shelf-{index + 1}", "name": level["name"], "layer": "cut", "polygons": [shelf]})
+        divider_h = max(12.0, settings["lipHeight"] * 0.62)
+        divider_w = shelf_d - 20.0
+        divider = rounded_rect(divider_w, divider_h, 1.5)
+        divider = affinity.translate(divider, xoff=0.0, yoff=8.0)
+        tab_w = settings["laserThickness"] + settings["fingerClearance"]
+        divider = unary_union([
+            divider,
+            _rect(10.0, 0.0, tab_w, 10.0, 0.5),
+            _rect(divider_w - 10.0 - tab_w, 0.0, tab_w, 10.0, 0.5),
+        ])
+        for divider_index in range(1, divider_count):
+            parts.append({"id": f"laser-divider-{index + 1}-{divider_index}", "name": f"Divisor {index + 1}.{divider_index}", "layer": "cut", "polygons": [divider]})
         if level["lip"] and level["lipHeight"] > 0:
             lip_h = level["lipHeight"]
-            lip = _rect(0.0, 0.0, width, lip_h, 2.0)
+            lip = _rect(0.0, 0.0, inner_w, lip_h, 2.0)
             lip_holes = []
             tab_w = _tab_width(settings)
-            gap = (width - tab_w * 4.0) / 5.0
+            gap = (inner_w - tab_w * 4.0) / 5.0
             for tab_index in range(4):
                 x = gap + tab_index * (tab_w + gap)
                 lip_holes.append(_rect(x, 0.0, tab_w, 3.5, 1.0))
@@ -295,6 +335,7 @@ class _Sheet:
 
 def _svg(sheets: list[_Sheet]) -> list[dict[str, Any]]:
     colors = {"cut": "#cf3e4d", "score": "#2e6fa8", "engrave": "#4b4b4b"}
+    fills = {"cut": "#f7dede", "score": "none", "engrave": "none"}
     out: list[dict[str, Any]] = []
     for sheet_index, sheet in enumerate(sheets, start=1):
         lines = [
@@ -313,7 +354,21 @@ def _svg(sheets: list[_Sheet]) -> list[dict[str, Any]]:
                     for ring in rings:
                         coords = list(ring.coords)
                         path = "M " + " L ".join(f"{x:.3f} {sheet.height - y:.3f}" for x, y in coords) + " Z"
-                        lines.append(f'<path d="{path}" fill="{colors[layer]}" fill-opacity="0.045" fill-rule="evenodd"/>')
+                        lines.append(f'<path d="{path}" fill="{fills[layer]}" fill-rule="evenodd"/>')
+                for line in part.get("cuts", []):
+                    coords = list(line.coords)
+                    path = "M " + " L ".join(f"{x:.3f} {sheet.height - y:.3f}" for x, y in coords)
+                    lines.append(f'<path d="{path}" fill="none"/>')
+            lines.append("</g>")
+        score_lines = []
+        for part in sheet.parts:
+            for line in part.get("scores", []):
+                coords = list(line.coords)
+                path = "M " + " L ".join(f"{x:.3f} {sheet.height - y:.3f}" for x, y in coords)
+                score_lines.append(f'<path d="{path}" fill="none"/>')
+        if score_lines:
+            lines.append(f'<g id="score" stroke="{colors["score"]}">')
+            lines.extend(score_lines)
             lines.append("</g>")
         lines.append("</g>")
         for part in sheet.parts:
@@ -344,6 +399,18 @@ def _dxf(sheet: _Sheet) -> str:
                 lines.extend(["0", "POLYLINE", "8", layer.upper(), "62", str(colors[layer]), "66", "1", "70", "1"])
                 for x, y in coords:
                     lines.extend(["0", "VERTEX", "8", layer.upper(), "10", f"{x:.4f}", "20", f"{y:.4f}", "30", "0.0"])
+                lines.extend(["0", "SEQEND"])
+            for line in part.get("cuts", []):
+                coords = list(line.coords)
+                lines.extend(["0", "POLYLINE", "8", "CUT", "62", "1", "66", "1", "70", "0"])
+                for x, y in coords:
+                    lines.extend(["0", "VERTEX", "8", "CUT", "10", f"{x:.4f}", "20", f"{y:.4f}", "30", "0.0"])
+                lines.extend(["0", "SEQEND"])
+            for line in part.get("scores", []):
+                coords = list(line.coords)
+                lines.extend(["0", "POLYLINE", "8", "SCORE", "62", "5", "66", "1", "70", "0"])
+                for x, y in coords:
+                    lines.extend(["0", "VERTEX", "8", "SCORE", "10", f"{x:.4f}", "20", f"{y:.4f}", "30", "0.0"])
                 lines.extend(["0", "SEQEND"])
     lines.extend(["0", "ENDSEC", "0", "EOF"])
     return "\n".join(lines)

@@ -83,6 +83,7 @@ export interface AppSettings {
   sign: boolean;
   signText: string;
   testCoupons: boolean;
+  autoSplit: boolean;
   awning: boolean;
   accessoryTray: boolean;
   insert: string;

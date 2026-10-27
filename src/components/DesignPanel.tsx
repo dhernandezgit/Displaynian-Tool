@@ -15,6 +15,33 @@ export default function DesignPanel({
   onSystem: (system: string) => void;
   onLevel: (index: number, patch: Partial<LevelConfig>) => void;
 }) {
+  const fitPanel = (printer: { width: number; depth: number }, width = settings.width, levels = settings.levels, spacing = settings.levelSpacing) => {
+    const panelW = width - 2 * settings.sideThickness - 4;
+    const panelH = settings.backHeight || (settings.baseHeight + (levels - 1) * spacing + settings.lipHeight + 80);
+    return {
+      panelSplit: Math.max(1, Math.ceil(panelW / Math.max(60, printer.width - 12))),
+      panelRows: Math.max(1, Math.ceil(panelH / Math.max(60, printer.depth - 12))),
+    };
+  };
+
+  const printerPatch = (printer: { id: string; width: number; depth: number; height: number }) => {
+    if (printer.id === "a1mini") {
+      return {
+        printer: printer.id,
+        bedWidth: printer.width,
+        bedDepth: printer.depth,
+        bedHeight: printer.height,
+        width: 170,
+        depth: 170,
+        shelfDepth: 140,
+        levelSpacing: 52,
+        levels: 4,
+        ...fitPanel(printer, 170, 4, 52),
+      };
+    }
+    return { printer: printer.id, bedWidth: printer.width, bedDepth: printer.depth, bedHeight: printer.height, ...fitPanel(printer) };
+  };
+
   return (
     <div className="design-panel">
       <Section title="Sistema" subtitle="Elige el punto de partida" icon={<LayoutGrid size={15} />} defaultOpen>
@@ -52,7 +79,7 @@ export default function DesignPanel({
               key={printer.id}
               type="button"
               className="chip-button"
-              onClick={() => onPatch({ printer: printer.id, bedWidth: printer.width, bedDepth: printer.depth, bedHeight: printer.height })}
+              onClick={() => onPatch(printerPatch(printer))}
             >
               {printer.label}
             </button>
@@ -68,7 +95,7 @@ export default function DesignPanel({
           <button type="button" className="chip-button" onClick={() => onPatch({ levels: 4 })}>4 bandejas</button>
           <button type="button" className="chip-button" onClick={() => onPatch({ levels: 5 })}>5 bandejas</button>
         </div>
-        <p className="panel-note">Wide 340 repite el ancho de la referencia; si tu cama es 256, divide el panel y la base o usa una impresora grande.</p>
+        <p className="panel-note">Wide 340 repite el ancho de la referencia. La base, las bandejas y la tapa se dividen automáticamente si no caben; para una pieza única usa H2D.</p>
       </Section>
 
       <Section title="Panel trasero" subtitle="SKÅDIS, panal, marca o liso" icon={<PanelTop size={15} />} defaultOpen>
@@ -112,7 +139,7 @@ export default function DesignPanel({
           onChange={(value) => {
             const printer = PRINTERS.find((item) => item.id === value);
             if (!printer) return;
-            onPatch({ printer: value, bedWidth: printer.width, bedDepth: printer.depth, bedHeight: printer.height });
+            onPatch(printerPatch(printer));
           }}
         />
         <NumberField label="Cama X" value={settings.bedWidth} min={80} max={1200} step={1} onChange={(value) => onPatch({ bedWidth: value })} />

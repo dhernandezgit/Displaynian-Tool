@@ -1,6 +1,6 @@
 # Displaynian
 
-**Versión 0.2.0** · Displays plegables, modulares y paramétricos para ferias, mercados y tiendas.
+**Versión 0.3.0** · Displays plegables, modulares y paramétricos para ferias, mercados y tiendas.
 
 Displaynian genera estructuras de exposición a partir de parámetros. El motor de geometría está escrito en **Python** y se ejecuta en el navegador con **Pyodide/WebAssembly**. El frontend usa **React + Three.js**. No hay servidor, no se suben archivos y no hace falta cuenta.
 
@@ -22,7 +22,8 @@ Displaynian no es un catálogo de modelos cerrados: es un generador. Cambias med
 - **Marcapáginas** con divisores de cuatro compartimentos.
 - **Bolígrafos y herramientas** con inserto de seis huecos.
 - **Sistema mixto** para combinar todo.
-- **Wide 340 / Narrow 230** y **3/4/5 bandejas** como variantes rápidas.
+- **Wide 340 / Narrow 230** y **3/4/5 bandejas** como variantes rápidas. Wide 340 se divide automáticamente para camas de 256 mm.
+- **Auto-división** de base, bandejas y tapa para camas pequeñas, con placas de unión y tornillos M3.
 
 ### Todo es opcional y editable
 
@@ -42,6 +43,7 @@ La altura y el fondo de bandeja se controlan de forma global para que los enlace
 ### Plegado y transporte
 
 - **Acordeón real** con cuatro enlaces por nivel y pasadores impresos.
+- **Auto-división** de base, bandejas y tapa si superan la cama, con placas de unión.
 - Vistas **Abierto**, **Plegado**, **Transporte** y **Despiece**.
 - Animación de plegado con control manual.
 - Tapa encajada sobre las bandejas y asa recortada.
@@ -61,11 +63,13 @@ La altura y el fondo de bandeja se controlan de forma global para que los enlace
 
 - Materiales de 3 a 6 mm, espesor real y kerf configurables.
 - Flat-pack de bandejas/paneles con finger joints y encajes.
-- SVGs y DXF por hoja con capas de corte.
+- **Laterales con alas plegables** unidas por línea de plegado; las bandejas se apoyan en ellas.
+- **Divisores de bandeja** para separar producto.
+- SVGs y DXF por hoja con capas de corte y líneas de plegado.
 - Nesting en hojas A4, A3, 600 × 400, 900 × 600 o personalizadas.
 - Galga de kerf y cupón de prueba de gancho SKÅDIS incluidos.
 - Cartel de papel y kit impreso opcional con enlaces, pasadores y ganchos.
-- Avisos de hoja, kerf, espesor real y bisagra.
+- Avisos de hoja, kerf, espesor real y alas plegables.
 
 ### Interfaz
 
@@ -84,7 +88,7 @@ La altura y el fondo de bandeja se controlan de forma global para que los enlace
 displaynian/
   params.py       parámetros, presets y normalización
   mesh.py         mallas, extrusión, revolución, STL/3MF/OBJ
-  foldable.py     bandejas, enlaces, pasadores, panel y plegado acordeón
+  foldable.py     bandejas, enlaces, pasadores, panel, auto-división y plegado acordeón
   engine.py       parámetros de fabricación, checks, BOM y exportadores
   laser.py        paneles 2D, cupones, signo, nesting, SVG y DXF
   webapi.py       puente JSON para Pyodide
@@ -129,6 +133,7 @@ La app queda en `https://dhernandezgit.github.io/Displaynian-Tool/web/`.
 - Mide el espesor real del material y el kerf de tu máquina.
 - Para plegado frecuente usa PETG o ASA; el PLA puede fatigarse.
 - Imprime un enlace y un pasador de prueba antes del set completo.
+- Las alas del modo láser se pliegan mejor en chapa de 3–4 mm; en 6 mm pueden agrietarse.
 - Los enlaces se imprimen tumbados y los pasadores en vertical.
 - Los ganchos se imprimen de lado para que las capas recorran la dirección de carga.
 - La bisagra viva es fiable en chapa de 3–4 mm; para 6 mm usa el kit de bisagras impresas.

@@ -5,7 +5,7 @@ from typing import Any, Callable
 
 import numpy as np
 from shapely import affinity
-from shapely.geometry import MultiPolygon, Point, Polygon
+from shapely.geometry import MultiPolygon, Point, Polygon, box as sbox
 from shapely.ops import unary_union
 
 from .mesh import (
@@ -87,21 +87,29 @@ def _vertical(mesh: Mesh, y_front: float, z0: float) -> Mesh:
     return mesh.transformed(matrix)
 
 
-def _tray_mesh(settings: dict[str, Any], depth: float) -> Mesh:
+def _tray_mesh(
+    settings: dict[str, Any],
+    depth: float,
+    module_w: float | None = None,
+    bottom_holes: list[Polygon] | None = None,
+) -> Mesh:
     width = settings["width"]
     link_t = settings["sideThickness"]
     wall = settings["shelfThickness"]
     height = settings["lipHeight"]
     radius = settings["trayRadius"]
     clearance = settings["clearance"]
-    tray_w = width - 2.0 * (link_t + clearance)
+    tray_w = module_w if module_w is not None else width - 2.0 * (link_t + clearance)
     tray_d = depth
     front_h = height * settings["frontLipRatio"]
     pin_front = 22.0
     pin_rear = tray_d - 22.0
     pin_z = height * 0.54
     pin_r = settings["pinDiameter"] / 2.0 + 0.15
-    mesh = extrude_polygon(rounded_rect(tray_w, tray_d, radius), 0.0, wall)
+    bottom = rounded_rect(tray_w, tray_d, radius)
+    if bottom_holes:
+        bottom = _difference(bottom, bottom_holes)
+    mesh = extrude_polygon(bottom, 0.0, wall)
     side = rounded_rect(tray_d, height, radius)
     side = _difference(
         side,
@@ -173,8 +181,8 @@ def _rail_mesh(settings: dict[str, Any], panel_w: float) -> Mesh:
     return extrude_x(outer.difference(inner), 0.0, panel_w)
 
 
-def _lid_mesh(settings: dict[str, Any]) -> Mesh:
-    width = settings["width"] + 4.0
+def _lid_mesh(settings: dict[str, Any], module_w: float | None = None, handle: bool = True) -> Mesh:
+    width = module_w if module_w is not None else settings["width"] + 4.0
     depth = min(settings["depth"] + 4.0, settings["shelfDepth"] + 10.0)
     height = settings["lidHeight"]
     wall = settings["shelfThickness"]
@@ -183,9 +191,9 @@ def _lid_mesh(settings: dict[str, Any]) -> Mesh:
     inner = _t(rounded_rect(width - 2.0 * wall, depth - 2.0 * wall, max(1.0, radius - wall)), wall, wall)
     mesh = extrude_polygon(outer.difference(inner), 0.0, height - wall)
     top = outer
-    if settings["transportHandle"]:
-        handle = _t(rounded_rect(min(90.0, width * 0.42), 18.0, 9.0), width / 2.0 - min(90.0, width * 0.42) / 2.0, depth * 0.40)
-        top = top.difference(handle)
+    if settings["transportHandle"] and handle:
+        handle_slot = _t(rounded_rect(min(90.0, width * 0.42), 18.0, 9.0), width / 2.0 - min(90.0, width * 0.42) / 2.0, depth * 0.40)
+        top = top.difference(handle_slot)
     mesh = mesh.append(extrude_polygon(top, height - wall, wall))
     return mesh
 
@@ -284,6 +292,29 @@ def _cone(cx: float, cy: float, z: float, radius: float, height: float) -> Mesh:
     return Mesh(np.asarray(vertices), np.asarray(faces, dtype=np.int64)).merged().oriented()
 
 
+def _splice_plate(settings: dict[str, Any], width: float, depth: float) -> Mesh:
+    plate = rounded_rect(width, depth, 3.0)
+    pin_r = settings["pinDiameter"] / 2.0 + 0.2
+    holes = [
+        Point(x, y).buffer(pin_r, resolution=20)
+        for x in (width * 0.5 - 12.0, width * 0.5 + 12.0)
+        for y in (depth * 0.28, depth * 0.72)
+    ]
+    return extrude_polygon(_difference(plate, holes), 0.0, 3.0)
+
+
+def _splice_holes(settings: dict[str, Any], x_values: list[float], depth: float) -> list[Polygon]:
+    r = settings["pinDiameter"] / 2.0 + 0.2
+    return [Point(x, y).buffer(r, resolution=20) for x in x_values for y in (depth * 0.28, depth * 0.72)]
+
+
+def _handle_bridge(settings: dict[str, Any], length: float = 90.0) -> Mesh:
+    bar = box(-length / 2.0, -7.0, 10.0, length, 14.0, 8.0)
+    for x in (-length / 2.0 + 6.0, length / 2.0 - 16.0):
+        bar = bar.append(box(x, -7.0, 0.0, 10.0, 14.0, 14.0))
+    return bar
+
+
 def build_parts(
     settings: dict[str, Any],
     add_part: Callable[..., None],
@@ -338,8 +369,26 @@ def build_parts(
         tray_levels.append(settings["levelConfigs"][-1])
 
     if settings["addBase"]:
-        base = rounded_rect(width, depth, settings["baseRadius"])
-        emit("base", "Base", "base", extrude_polygon(base, 0.0, base_h), "base", "structure")
+        base_poly = rounded_rect(width, depth, settings["baseRadius"])
+        base_splits = max(1, int(math.ceil(width / max(80.0, settings["bedWidth"] - 16.0)))) if settings.get("autoSplit", True) else 1
+        if base_splits == 1:
+            emit("base", "Base", "base", extrude_polygon(base_poly, 0.0, base_h), "base", "structure")
+        else:
+            piece_w = width / base_splits
+            for col in range(base_splits):
+                x0 = col * piece_w
+                piece = base_poly.intersection(sbox(max(0.0, x0), -1.0, min(width, x0 + piece_w), depth + 1.0))
+                holes: list[Polygon] = []
+                if col > 0:
+                    holes.extend(_splice_holes(settings, [12.0], depth))
+                if col < base_splits - 1:
+                    holes.extend(_splice_holes(settings, [piece_w - 12.0], depth))
+                piece = _difference(piece, holes)
+                emit(f"base-{col + 1}", f"Base {col + 1}/{base_splits}", "base", extrude_polygon(piece, 0.0, base_h), "base", "structure")
+            for seam in range(1, base_splits):
+                plate = _splice_plate(settings, 60.0, depth)
+                plate = plate.translated((seam * piece_w - 30.0, 0.0, -3.0))
+                emit(f"base-splice-{seam}", f"Unión de base {seam}", "base", plate, "corner", "hardware")
         if settings["feet"]:
             for index, (x, y) in enumerate(
                 [(16.0, 16.0), (width - 16.0, 16.0), (16.0, depth - 16.0), (width - 16.0, depth - 16.0)],
@@ -361,25 +410,38 @@ def build_parts(
     fold_y_offset = max(0.0, -min(item[0] for item in tray_fold) * 0.5 + 2.0)
     tray_fold = [(0.0, 0.0)] + [(item[0] + fold_y_offset, item[1]) for item in tray_fold[1:]]
 
+    tray_splits = max(1, int(math.ceil(tray_w / max(80.0, settings["bedWidth"] - 20.0)))) if settings.get("autoSplit", True) else 1
+    module_w = tray_w / tray_splits
     for index, level in enumerate(tray_levels):
         z = base_h + index * spacing
-        mesh = _tray_mesh(settings, tray_depth)
-        mesh = mesh.translated((tray_x, tray_y, z))
-        if side_ok := True:
-            pass
         if level["enabled"]:
             fold = matrix_translate([0.0, tray_fold[index][0], tray_fold[index][1] - index * spacing])
-            emit(f"tray-{index + 1}", level["name"], f"tray-{index + 1}", mesh, "shelf", "shelf", fold_matrix=fold)
-            for extra_name, extra_mesh in _insert_mesh(settings, level, tray_w, tray_depth, tray_h):
-                emit(
-                    f"tray-{index + 1}-{extra_name}",
-                    f"{level['name']} · {extra_name}",
-                    f"tray-{index + 1}",
-                    extra_mesh.translated((tray_x, tray_y, z)),
-                    "accessory",
-                    "insert",
-                    fold_matrix=fold,
-                )
+            for module in range(tray_splits):
+                bottom_holes: list[Polygon] = []
+                if module > 0:
+                    bottom_holes.extend(_splice_holes(settings, [12.0], tray_depth))
+                if module < tray_splits - 1:
+                    bottom_holes.extend(_splice_holes(settings, [module_w - 12.0], tray_depth))
+                mesh = _tray_mesh(settings, tray_depth, module_w, bottom_holes)
+                module_x = tray_x + module * module_w
+                mesh = mesh.translated((module_x, tray_y, z))
+                suffix = f"-{module + 1}" if tray_splits > 1 else ""
+                name = level["name"] if tray_splits == 1 else f"{level['name']} · módulo {module + 1}"
+                emit(f"tray-{index + 1}{suffix}", name, f"tray-{index + 1}", mesh, "shelf", "shelf", fold_matrix=fold)
+                for extra_name, extra_mesh in _insert_mesh(settings, level, module_w, tray_depth, tray_h):
+                    emit(
+                        f"tray-{index + 1}{suffix}-{extra_name}",
+                        f"{name} · {extra_name}",
+                        f"tray-{index + 1}",
+                        extra_mesh.translated((module_x, tray_y, z)),
+                        "accessory",
+                        "insert",
+                        fold_matrix=fold,
+                    )
+            for seam in range(1, tray_splits):
+                plate = _splice_plate(settings, 60.0, tray_depth)
+                plate = plate.translated((tray_x + seam * module_w - 30.0, tray_y, z - 3.0))
+                emit(f"tray-{index + 1}-splice-{seam}", f"{level['name']} · unión {seam}", f"tray-{index + 1}", plate, "corner", "hardware", fold_matrix=fold)
 
     link_count = 0
     pin_count = 0
@@ -454,14 +516,21 @@ def build_parts(
                     "panel",
                     fold_matrix=fold,
                 )
-        emit(
-            "panel-rail",
-            "Raíl inferior del panel",
-            "panel",
-            _rail_mesh(settings, panel_w + 4.0).translated((panel_x0 - 2.0, depth - 13.0, base_h)),
-            "corner",
-            "hardware",
-        )
+        rail_w = panel_w + 4.0
+        rail_splits = max(1, int(math.ceil(rail_w / max(80.0, settings["bedWidth"] - 16.0)))) if settings.get("autoSplit", True) else 1
+        for rail_index in range(rail_splits):
+            rail_piece_w = rail_w / rail_splits
+            rail = _rail_mesh(settings, rail_piece_w).translated(
+                (panel_x0 - 2.0 + rail_index * rail_piece_w, depth - 13.0, base_h)
+            )
+            emit(
+                f"panel-rail-{rail_index + 1}",
+                f"Raíl de panel {rail_index + 1}/{rail_splits}",
+                "panel",
+                rail,
+                "corner",
+                "hardware",
+            )
         for index, x in enumerate((panel_x0 + 8.0, panel_x0 + panel_w - 20.0), start=1):
             clip = box(x, depth - 12.0, panel_z0 + panel_h * 0.55, 12.0, 12.0, 22.0)
             clip = clip.append(box(x - 3.0, depth - 15.0, panel_z0 + panel_h * 0.55 + 8.0, 18.0, 18.0, 5.0))
@@ -477,16 +546,20 @@ def build_parts(
         if settings["panelJoiners"] and (current_panel_rows > 1 or panel_cols > 1):
             for index in range(max(current_panel_rows - 1, panel_cols - 1)):
                 z = panel_z0 + (index + 1) * panel_h / current_panel_rows
-                joiner = box(panel_x0 + 6.0, depth - 1.5, z - 14.0, panel_w - 12.0, 3.0, 28.0)
-                emit(
-                    f"panel-joiner-{index + 1}",
-                    f"Unión de panel {index + 1}",
-                    "panel",
-                    joiner,
-                    "corner",
-                    "hardware",
-                    fold_matrix=panel_pieces[min(index, len(panel_pieces) - 1)] if panel_pieces else None,
-                )
+                joiner_w = panel_w - 12.0
+                joiner_splits = max(1, int(math.ceil(joiner_w / max(80.0, settings["bedWidth"] - 16.0)))) if settings.get("autoSplit", True) else 1
+                for joiner_index in range(joiner_splits):
+                    piece = joiner_w / joiner_splits
+                    joiner = box(panel_x0 + 6.0 + joiner_index * piece, depth - 1.5, z - 14.0, piece, 3.0, 28.0)
+                    emit(
+                        f"panel-joiner-{index + 1}-{joiner_index + 1}",
+                        f"Unión de panel {index + 1}.{joiner_index + 1}",
+                        "panel",
+                        joiner,
+                        "corner",
+                        "hardware",
+                        fold_matrix=panel_pieces[min(index, len(panel_pieces) - 1)] if panel_pieces else None,
+                    )
 
     sign_fold = panel_pieces[-1] if panel_pieces else None
     if settings.get("sign") and settings["addRear"] and settings["backPanel"] != "none":
@@ -518,10 +591,22 @@ def build_parts(
                 )
 
     if settings["transport"] and settings["transportLid"]:
-        lid = _lid_mesh(settings)
+        lid_w = width + 4.0
+        lid_splits = max(1, int(math.ceil(lid_w / max(80.0, settings["bedWidth"] - 16.0)))) if settings.get("autoSplit", True) else 1
         open_z = base_h + (levels - 1) * spacing + tray_h + 2.0
-        lid = lid.translated((-2.0, tray_y - 4.0, open_z))
         fold = matrix_translate([0.0, 0.0, stack_top + current_panel_rows * (settings["panelThickness"] + 1.5) + 2.0 - open_z])
-        emit("lid", "Tapa de transporte", "transport", lid, "transport", "transport", fold_matrix=fold)
+        if lid_splits == 1:
+            lid = _lid_mesh(settings)
+            lid = lid.translated((-2.0, tray_y - 4.0, open_z))
+            emit("lid", "Tapa de transporte", "transport", lid, "transport", "transport", fold_matrix=fold)
+        else:
+            piece_w = lid_w / lid_splits
+            for module in range(lid_splits):
+                lid = _lid_mesh(settings, piece_w, handle=False)
+                lid = lid.translated((-2.0 + module * piece_w, tray_y - 4.0, open_z))
+                emit(f"lid-{module + 1}", f"Tapa {module + 1}/{lid_splits}", "transport", lid, "transport", "transport", fold_matrix=fold)
+            bridge = _handle_bridge(settings)
+            bridge = bridge.translated((width / 2.0, tray_y + tray_depth / 2.0, open_z + settings["lidHeight"]))
+            emit("lid-handle", "Asa puente", "transport", bridge, "transport", "transport", fold_matrix=fold)
 
     return parts

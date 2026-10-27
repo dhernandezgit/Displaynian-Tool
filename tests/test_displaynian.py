@@ -231,3 +231,35 @@ def test_wide_and_narrow_variants_build():
         assert result["ok"]
         assert result["parts"]
         assert result["dimensions"]["width"] == pytest.approx(width)
+
+
+def test_wide_auto_split_fits_bed_and_reports_splices():
+    result = engine.build({"settings": _settings(width=340, panelSplit=2, autoSplit=True)})
+    assert result["ok"]
+    for part in result["parts"]:
+        assert max(part["dimensions"].values()) <= 257.0
+    ids = {part["id"] for part in result["parts"]}
+    assert "base-2" in ids
+    assert "tray-1-2" in ids
+    assert any(part_id.startswith("tray-1-splice") for part_id in ids)
+    assert any(part_id.startswith("lid-2") for part_id in ids)
+    assert any(check["code"] == "auto-split" for check in result["checks"])
+
+
+def test_auto_split_off_warns_for_wide():
+    result = engine.build({"settings": _settings(width=340, panelSplit=2, autoSplit=False)})
+    assert any(check["code"] == "bed-fit" and check["level"] == "warn" for check in result["checks"])
+
+
+def test_laser_side_arms_have_cut_and_score_lines():
+    from displaynian import laser
+    from displaynian.params import normalize_settings
+
+    settings = normalize_settings(_settings(mode="laser"))
+    parts = laser._panel_parts(settings)
+    sides = [part for part in parts if part["id"] in {"laser-side-a", "laser-side-b"}]
+    assert len(sides) == 2
+    for side in sides:
+        assert side["cuts"]
+        assert side["scores"]
+        assert all(len(line.coords) == 2 for line in side["scores"])

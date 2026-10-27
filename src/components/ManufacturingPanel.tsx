@@ -21,6 +21,7 @@ export default function ManufacturingPanel({
             <NumberField label="Paredes" value={settings.walls} min={1} max={8} step={1} unit="" onChange={(value) => onPatch({ walls: value })} />
             <NumberField label="Relleno" value={settings.infill} min={0} max={60} step={1} unit="%" onChange={(value) => onPatch({ infill: value })} />
             <NumberField label="Holgura de encaje" value={settings.clearance} min={0.1} max={0.8} step={0.01} onChange={(value) => onPatch({ clearance: value })} hint="Pasador y bandeja" />
+            <Toggle label="Dividir piezas grandes" hint="Base, bandejas y tapa por módulos" checked={settings.autoSplit} onChange={(value) => onPatch({ autoSplit: value })} />
           </Section>
           <Section title="Uniones" subtitle="Todo el sistema usa pasadores" icon={<Layers size={15} />} defaultOpen>
             <NumberField label="Diámetro de pasador" value={settings.pinDiameter} min={2.5} max={8} step={0.1} onChange={(value) => onPatch({ pinDiameter: value })} />
