@@ -1,6 +1,6 @@
 # Displaynian
 
-**Versión 0.1.0** · Displays plegables, modulares y paramétricos para ferias, mercados y tiendas.
+**Versión 0.1.1** · Displays plegables, modulares y paramétricos para ferias, mercados y tiendas.
 
 Displaynian genera estructuras de exposición a partir de parámetros. El motor de geometría está escrito en **Python** y se ejecuta en el navegador con **Pyodide/WebAssembly**. El frontend usa **React + Three.js**. No hay servidor, no se suben archivos y no hace falta cuenta.
 

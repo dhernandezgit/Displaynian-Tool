@@ -1,6 +1,23 @@
 # Changelog
 
+## 0.1.1 — 2026-10-27
+
+### Añadido
+
+- Apoyos de apilado en la tapa de transporte.
+- Pasadores impresos Ø6 mm generados como piezas y reflejados en el BOM.
+- Cuatro tipos de esquina configurables: L, clip en U, placa plana y cartela triangular.
+- Ajuste rápido del display a la cama de la impresora.
+- Seguros de gancho SKÅDIS y avisos de orientación de impresión por pieza.
+
+### Mejorado
+
+- BOM de herrajes, esquinas, pared, patas y seguros.
+- Preflight por pieza en lugar de solo por conjunto.
+- Vista previa láser con relleno y capas más legibles.
+
 ## 0.1.0 — 2026-10-27
+
 
 Primera versión pública de Displaynian.
 
