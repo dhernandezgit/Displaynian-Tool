@@ -1,11 +1,42 @@
+## 0.7.0 — 2026-10-28
+
+Rediseño del mecanismo cantilever y del paquete de transporte.
+
+### Mecanismo
+
+- Cuatro brazos ranurados por hueco: delantero y trasero a cada lado.
+- Dos carriles laterales alternos para que los brazos no choquen al plegar.
+- Pasadores de longitud calculada por carril, sin cabezas que invadan otros brazos.
+- Separación plegada automática en configuraciones de 4–6 niveles.
+- Comprobación geométrica de choques entre brazos y pasadores en plegado.
+
+### Formato
+
+- Base compacta 170 × 140 mm; abierto 170 × 190 × 125 mm; caja 179 × 140 × 111 mm.
+- Preset A1 Mini de 150 × 120 mm y 3 niveles, con caja de 102 mm.
+- Bandejas más bajas (18 mm), brazos de 4 mm y base de 3 mm.
+- Caja más ancha que la base para cubrir los pasadores exteriores.
+
+### Exportación y guía
+
+- 3MF y OBJ ahora se exportan ensamblados y sin la caja de transporte.
+- Guía de montaje paso a paso en la ayuda: probar un brazo, montar de abajo arriba y plegar.
+- Textos y presets adaptados al mecanismo de cuatro brazos.
+- Guardado local v6 para cargar el formato compacto.
+
+### Calidad
+
+- 32 tests, typecheck y build.
+- CI y GitHub Pages verificados.
+
 ## 0.6.0 — 2026-10-27
 
 Cambio a expositor cantilever real, plegable sin desmontar.
 
 ### 3D
 
-- Dos brazos ranurados por hueco, con pasadores siempre montados.
-- Brazos alternan delante, centro y detrás para no chocar al plegar.
+- Cuatro brazos ranurados por hueco, con pasadores siempre montados.
+- Huecos alternan dos carriles laterales y cada hueco lleva brazos delantero y trasero para no chocar al plegar.
 - Bandejas escalonadas en abierto y apiladas en plegado.
 - Panel trasero opcional desmontable, se guarda plano sobre la pila.
 - Caja de transporte dimensionada para cubrir brazos, pila y panel.

@@ -178,9 +178,9 @@ def _link_mesh(settings: dict[str, Any], spacing: float) -> Mesh:
     return extrude_x(profile, 0.0, settings["sideThickness"])
 
 
-def _pin_mesh(settings: dict[str, Any]) -> Mesh:
+def _pin_mesh(settings: dict[str, Any], length: float | None = None) -> Mesh:
     diameter = settings["pinDiameter"]
-    length = settings["sideThickness"] + settings["clearance"] + settings["shelfThickness"] + 1.8
+    length = length if length is not None else settings["sideThickness"] + settings["clearance"] + settings["shelfThickness"] + 1.8
     head = cylinder(0.0, 0.0, -1.6, diameter / 2.0 + 2.0, 1.6, 32)
     shaft = cylinder(0.0, 0.0, 0.0, diameter / 2.0, length, 32)
     tip = cylinder(0.0, 0.0, length - 1.0, diameter / 2.0 - 0.5, 1.0, 24)

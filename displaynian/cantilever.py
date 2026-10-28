@@ -62,12 +62,21 @@ def _active_levels(settings: dict[str, Any]) -> list[tuple[int, dict[str, Any]]]
     return [(index, level) for index, level in enumerate(levels) if level.get("enabled", True)]
 
 
-def _lane_geometry(settings: dict[str, Any], tray_depth: float) -> tuple[float, tuple[float, float, float], float]:
-    margin = min(24.0, max(12.0, tray_depth * 0.16))
-    spacing = max(1.0, (tray_depth - 2.0 * margin) / 2.0)
-    lanes = (margin, margin + spacing, margin + spacing * 2.0)
-    width = min(settings["postDepth"], max(9.0, spacing - 2.0))
-    return margin, lanes, width
+def _y_layout(settings: dict[str, Any], tray_depth: float) -> tuple[tuple[float, float, float, float], float]:
+    margin = min(5.0, tray_depth * 0.05)
+    gap = 3.0 if tray_depth >= 80.0 else 2.0
+    band = max(8.0, (tray_depth - 2.0 * margin - 3.0 * gap) / 4.0)
+    centers = tuple(margin + band / 2.0 + index * (band + gap) for index in range(4))
+    width = min(settings["postDepth"], max(9.0, band - 2.0))
+    return centers, width
+
+
+def _x_layout(settings: dict[str, Any]) -> tuple[tuple[float, float], float, float]:
+    link_t = settings["sideThickness"]
+    head = settings["pinDiameter"] + 4.0
+    pitch = link_t + head + 2.0 * settings["clearance"]
+    tray_x = pitch + link_t + settings["clearance"]
+    return (0.0, pitch), tray_x, settings["width"] - 2.0 * tray_x
 
 
 def _link_mesh(settings: dict[str, Any], slot_low: float, slot_high: float, width: float) -> Mesh:
@@ -88,9 +97,17 @@ def _link_mesh(settings: dict[str, Any], slot_low: float, slot_high: float, widt
     return extrude_polygon(profile, 0.0, settings["sideThickness"])
 
 
-def _pin_local(settings: dict[str, Any], tray_w: float, tray_x: float, lane_y: float, pin_z: float, side: str) -> Mesh:
-    pin = _pin_mesh(settings)
-    pin = pin.translated((-tray_x, lane_y, pin_z))
+def _pin_local(
+    settings: dict[str, Any],
+    tray_w: float,
+    tray_x: float,
+    lane_start: float,
+    lane_y: float,
+    pin_z: float,
+    side: str,
+) -> Mesh:
+    length = tray_x - lane_start + settings["shelfThickness"] + 1.8
+    pin = _pin_mesh(settings, length).translated((-tray_x + lane_start, lane_y, pin_z))
     if side == "der":
         pin = pin.transformed(matrix_scale([-1.0, 1.0, 1.0], (tray_w / 2.0, 0.0, 0.0)))
     return pin
@@ -135,17 +152,34 @@ def build_parts(settings: dict[str, Any], add_part: Callable[..., None]) -> list
     lip_h = settings["lipHeight"]
     step = settings["cantileverStep"]
     tray_y = 6.0
-    tray_x = link_t + clearance
     tray_depth = max(40.0, min(settings["shelfDepth"], depth - 18.0))
-    tray_w = width - 2.0 * tray_x
+    lane_starts, tray_x, tray_w = _x_layout(settings)
     z_low = max(5.0, lip_h * 0.26)
     z_high = min(lip_h - 4.4, lip_h * 0.74)
-    _, lanes, link_width = _lane_geometry(settings, tray_depth)
+    pin_lanes, link_width = _y_layout(settings, tray_depth)
     active = _active_levels(settings)
     closed_gap = max(settings["cantileverClosedGap"], lip_h + wall_t + 1.5)
+    dz_pin = z_high - z_low
+    gaps = [max(24.0, level.get("gap", settings["levelSpacing"])) for _, level in active[1:]]
+    if len(active) >= 4 and gaps:
+        for _ in range(2):
+            longest = max(max(math.hypot(step, gap + dz_pin) for gap in gaps), closed_gap + dz_pin)
+            closed_gap = max(closed_gap, (longest + 11.0) / 2.0)
 
+    anchor_centers = (tray_w * 0.28, tray_w * 0.72)
+    anchor_y = tray_depth * 0.38
+    anchor_holes = []
+    anchor_tabs = []
+    if active and active[0][0] == 0:
+        for center_x in anchor_centers:
+            anchor_holes.append(
+                affinity.translate(rounded_rect(10.8, 6.8, 1.2), xoff=center_x - 5.4, yoff=anchor_y - 3.4)
+            )
+            anchor_tabs.append((tray_x + center_x - 5.0, tray_y + anchor_y - 3.0))
     if settings["addBase"]:
         base = extrude_polygon(rounded_rect(width, depth, settings["baseRadius"]), 0.0, base_h)
+        for tab_x, tab_y in anchor_tabs:
+            base = base.append(box(tab_x, tab_y, base_h, 10.0, 6.0, 1.8))
         emit("base", "Base", "base", base, "base", "structure")
         if settings["feet"]:
             for index, (x, y) in enumerate(
@@ -166,14 +200,12 @@ def build_parts(settings: dict[str, Any], add_part: Callable[..., None]) -> list
     fold_z: list[float] = []
     open_y: list[float] = []
     cumulative = base_h
-    center = (len(active) - 1) * step / 2.0
-    panel_offset = settings["panelThickness"] + 6.0 if settings["addRear"] and settings["backPanel"] != "none" else 0.0
     for index, (_, level) in enumerate(active):
         if index > 0:
             cumulative += max(24.0, level.get("gap", settings["levelSpacing"]))
         open_z.append(cumulative)
         fold_z.append(base_h + index * closed_gap)
-        open_y.append(tray_y + center - index * step - panel_offset)
+        open_y.append(tray_y - index * step)
 
     tray_open: list[np.ndarray] = []
     tray_fold: list[np.ndarray] = []
@@ -188,8 +220,9 @@ def build_parts(settings: dict[str, Any], add_part: Callable[..., None]) -> list
             settings,
             tray_depth,
             tray_w,
+            bottom_holes=anchor_holes if index == 0 else None,
             dividers=style == "dividers",
-            pin_ys=lanes,
+            pin_ys=pin_lanes,
             pin_zs=(z_low, z_high),
         )
         emit(
@@ -253,59 +286,57 @@ def build_parts(settings: dict[str, Any], add_part: Callable[..., None]) -> list
                 )
 
     gap_count = max(0, len(active) - 1)
+    link_tops: list[float] = []
     for gap_index in range(gap_count):
-        level = active[gap_index + 1][1]
-        gap = max(24.0, level.get("gap", settings["levelSpacing"]))
-        dz_pin = z_high - z_low
+        gap = gaps[gap_index]
         rise = gap + dz_pin
         d_open = math.hypot(step, rise)
         d_closed = closed_gap + dz_pin
         slot_low = min(d_open, d_closed)
         slot_high = max(d_open, d_closed)
+        link_tops.append(slot_high + 4.0)
         theta = math.degrees(math.atan2(step, rise))
-        lane_y = lanes[gap_index % 3]
-        for side, x0 in (("izq", 0.0), ("der", width - link_t)):
-            link = _link_mesh(settings, slot_low, slot_high, link_width)
-            open_matrix = (
-                matrix_translate([x0, open_y[gap_index] + lane_y, open_z[gap_index] + z_low])
-                @ matrix_rotate_x(theta)
-                @ LINK_ORIENTATION
-            )
-            fold_matrix = matrix_translate([x0, tray_y + lane_y, fold_z[gap_index] + z_low]) @ LINK_ORIENTATION
-            emit(
-                f"link-{gap_index + 1}-{side}",
-                f"Brazo {gap_index + 1} {side}",
-                f"link-{gap_index + 1}",
-                link,
-                "frame",
-                "joint",
-                open_matrix,
-                fold_matrix,
-                explode=(0.0, 0.0, 20.0 + gap_index * 8.0),
-            )
-        for tray_index, pin_z, label in (
-            (gap_index, z_low, "inferior"),
-            (gap_index + 1, z_high, "superior"),
-        ):
-            for side in ("izq", "der"):
-                pin = _pin_local(settings, tray_w, tray_x, lane_y, pin_z, side)
-                emit(
-                    f"pin-{gap_index + 1}-{label}-{side}",
-                    f"Pasador {gap_index + 1} {label} {side}",
-                    "pins",
-                    pin,
-                    "corner",
-                    "hardware",
-                    tray_open[tray_index],
-                    tray_fold[tray_index],
+        lane_start = lane_starts[gap_index % 2]
+        pair = (pin_lanes[0], pin_lanes[3]) if gap_index % 2 == 0 else (pin_lanes[1], pin_lanes[2])
+        for side, x0 in (("izq", lane_start), ("der", width - lane_start - link_t)):
+            for position, lane_y in (("del", pair[0]), ("tras", pair[1])):
+                link = _link_mesh(settings, slot_low, slot_high, link_width)
+                open_matrix = (
+                    matrix_translate([x0, open_y[gap_index] + lane_y, open_z[gap_index] + z_low])
+                    @ matrix_rotate_x(theta)
+                    @ LINK_ORIENTATION
                 )
+                fold_matrix = matrix_translate([x0, tray_y + lane_y, fold_z[gap_index] + z_low]) @ LINK_ORIENTATION
+                emit(
+                    f"link-{gap_index + 1}-{side}-{position}",
+                    f"Brazo {gap_index + 1} {side} {position}",
+                    f"link-{gap_index + 1}",
+                    link,
+                    "frame",
+                    "joint",
+                    open_matrix,
+                    fold_matrix,
+                    explode=(0.0, 0.0, 20.0 + gap_index * 8.0),
+                )
+                for tray_index, pin_z, label in (
+                    (gap_index, z_low, "inferior"),
+                    (gap_index + 1, z_high, "superior"),
+                ):
+                    pin = _pin_local(settings, tray_w, tray_x, lane_start, lane_y, pin_z, side)
+                    emit(
+                        f"pin-{gap_index + 1}-{label}-{side}-{position}",
+                        f"Pasador {gap_index + 1} {label} {side} {position}",
+                        "pins",
+                        pin,
+                        "corner",
+                        "hardware",
+                        tray_open[tray_index],
+                        tray_fold[tray_index],
+                    )
 
     fold_top = max(fold_z[index] + lip_h for index in range(len(active)))
-    for gap_index in range(gap_count):
-        level = active[gap_index + 1][1]
-        gap = max(24.0, level.get("gap", settings["levelSpacing"]))
-        d_open = math.hypot(step, gap + z_high - z_low)
-        fold_top = max(fold_top, fold_z[gap_index] + z_low + d_open + 7.0)
+    for gap_index, link_top in enumerate(link_tops):
+        fold_top = max(fold_top, fold_z[gap_index] + z_low + link_top)
 
     panel_top = fold_top + 3.0
     panel_depth_needed = depth

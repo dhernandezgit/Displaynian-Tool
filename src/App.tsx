@@ -40,7 +40,7 @@ import HelpDialog from "./components/HelpDialog";
 import StatusBar from "./components/StatusBar";
 import Logo from "./components/Logo";
 
-const SETTINGS_KEY = "displaynian-settings-v5";
+const SETTINGS_KEY = "displaynian-settings-v6";
 const THEME_KEY = "displaynian-theme";
 const PROJECT_NAME_KEY = "displaynian-project-name";
 
@@ -224,7 +224,7 @@ export default function App() {
   const exportProject = useCallback(() => {
     const payload = {
       app: "Displaynian",
-      version: "0.1.0",
+      version: "0.7.0",
       name: projectName,
       exportedAt: new Date().toISOString(),
       settings,

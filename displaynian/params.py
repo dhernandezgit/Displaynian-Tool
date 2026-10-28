@@ -9,14 +9,14 @@ SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
         "label": "Llaveros y colgantes",
         "description": "Tres bandejas cantilever con contenedores extraíbles.",
         "width": 170.0,
-        "depth": 150.0,
+        "depth": 140.0,
         "levels": 3,
         "levelSpacing": 50.0,
-        "shelfDepth": 120.0,
-        "lipHeight": 24.0,
+        "shelfDepth": 115.0,
+        "lipHeight": 18.0,
         "trayTilt": 0.0,
-        "cantileverStep": 24.0,
-        "cantileverClosedGap": 30.0,
+        "cantileverStep": 28.0,
+        "cantileverClosedGap": 24.0,
         "backPanel": "none",
         "hooks": 0,
         "bins": 0,
@@ -32,10 +32,10 @@ SYSTEM_PRESETS: dict[str, dict[str, Any]] = {
         "levels": 3,
         "levelSpacing": 58.0,
         "shelfDepth": 110.0,
-        "lipHeight": 18.0,
+        "lipHeight": 16.0,
         "trayTilt": 0.0,
         "cantileverStep": 26.0,
-        "cantileverClosedGap": 24.0,
+        "cantileverClosedGap": 22.0,
         "backPanel": "none",
         "hooks": 0,
         "bins": 0,
@@ -198,10 +198,10 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "mode": "3d",
     "system": "keychain",
     "width": 170.0,
-    "depth": 150.0,
+    "depth": 140.0,
     "levels": 3,
     "levelSpacing": 50.0,
-    "shelfDepth": 120.0,
+    "shelfDepth": 115.0,
     "shelfTaper": 1.0,
     "addBase": True,
     "addRear": True,
@@ -213,14 +213,14 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "postDepth": 30.0,
     "panelThickness": 3.0,
     "shelfThickness": 2.4,
-    "lipHeight": 24.0,
+    "lipHeight": 18.0,
     "lipThickness": 2.4,
     "dividerSpacing": 32.0,
     "dividerThickness": 1.6,
     "trayRadius": 3.0,
     "trayTilt": 0.0,
-    "cantileverStep": 24.0,
-    "cantileverClosedGap": 30.0,
+    "cantileverStep": 28.0,
+    "cantileverClosedGap": 24.0,
     "frontLipRatio": 0.72,
     "pinDiameter": 4.2,
     "lidHeight": 38.0,
@@ -375,10 +375,10 @@ def normalize_settings(raw: dict[str, Any] | None) -> dict[str, Any]:
     settings["system"] = system
     settings["mode"] = _choice(settings.get("mode"), ["3d", "laser"], "3d")
     settings["width"] = _number(settings.get("width"), 170.0, 120.0, 900.0)
-    settings["depth"] = _number(settings.get("depth"), 160.0, 120.0, 600.0)
+    settings["depth"] = _number(settings.get("depth"), 140.0, 120.0, 600.0)
     settings["levels"] = _integer(settings.get("levels"), 4, 1, 6)
     settings["levelSpacing"] = _number(settings.get("levelSpacing"), 50.0, 30.0, 160.0)
-    settings["shelfDepth"] = _number(settings.get("shelfDepth"), 140.0, 60.0, settings["depth"] - 16.0)
+    settings["shelfDepth"] = _number(settings.get("shelfDepth"), 115.0, 60.0, settings["depth"] - 16.0)
     settings["shelfTaper"] = _number(settings.get("shelfTaper"), 1.0, 0.55, 1.0)
     settings["addBase"] = _boolean(settings.get("addBase"), True)
     settings["addRear"] = _boolean(settings.get("addRear"), True)
@@ -390,14 +390,14 @@ def normalize_settings(raw: dict[str, Any] | None) -> dict[str, Any]:
     settings["postDepth"] = _number(settings.get("postDepth"), 30.0, 8.0, 80.0)
     settings["panelThickness"] = _number(settings.get("panelThickness"), 3.0, 1.5, 20.0)
     settings["shelfThickness"] = _number(settings.get("shelfThickness"), 2.4, 1.2, 20.0)
-    settings["lipHeight"] = _number(settings.get("lipHeight"), 24.0, 16.0, 60.0)
+    settings["lipHeight"] = _number(settings.get("lipHeight"), 18.0, 16.0, 60.0)
     settings["lipThickness"] = _number(settings.get("lipThickness"), 2.4, 1.0, 12.0)
     settings["dividerSpacing"] = _number(settings.get("dividerSpacing"), 32.0, 18.0, 120.0)
     settings["dividerThickness"] = _number(settings.get("dividerThickness"), 1.6, 0.8, 6.0)
     settings["trayRadius"] = _number(settings.get("trayRadius"), 3.0, 0.0, 20.0)
     settings["trayTilt"] = _number(settings.get("trayTilt"), 0.0, 0.0, 20.0)
-    settings["cantileverStep"] = _number(settings.get("cantileverStep"), 24.0, 8.0, 70.0)
-    settings["cantileverClosedGap"] = _number(settings.get("cantileverClosedGap"), 30.0, 12.0, 80.0)
+    settings["cantileverStep"] = _number(settings.get("cantileverStep"), 28.0, 8.0, 70.0)
+    settings["cantileverClosedGap"] = _number(settings.get("cantileverClosedGap"), 24.0, 12.0, 80.0)
     settings["frontLipRatio"] = _number(settings.get("frontLipRatio"), 0.72, 0.3, 1.0)
     settings["pinDiameter"] = _number(settings.get("pinDiameter"), 4.2, 2.0, 10.0)
     settings["lidHeight"] = _number(settings.get("lidHeight"), 38.0, 16.0, 160.0)

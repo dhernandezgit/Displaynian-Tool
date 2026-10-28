@@ -1,13 +1,13 @@
 # Displaynian
 
-**Versión 0.6.0** · Expositor cantilever modular para ferias, mercados y tiendas.
+**Versión 0.7.0** · Expositor cantilever modular para ferias, mercados y tiendas.
 
 Displaynian genera un expositor **cantilever plegable** a partir de parámetros. El motor de geometría está escrito en **Python** y se ejecuta en el navegador con **Pyodide/WebAssembly**; el frontend usa **React + Three.js**. No hay servidor, no se suben archivos y no hace falta cuenta.
 
 - **Web:** `https://dhernandezgit.github.io/Displaynian-Tool/web/`
 - **Repo:** `https://github.com/dhernandezgit/Displaynian-Tool`
 - **Modos:** impresión 3D FDM y corte láser.
-- **Salidas:** STL por pieza, 3MF, OBJ, SVG, DXF, ZIP láser, BOM CSV, proyecto `.displaynian.json` y mockup PNG.
+- **Salidas:** STL por pieza, 3MF/OBJ ensamblados, SVG, DXF, ZIP láser, BOM CSV, proyecto `.displaynian.json` y mockup PNG.
 
 ## Qué hace
 
@@ -15,12 +15,13 @@ No es un catálogo de modelos cerrados: cambias medidas, número de niveles, pas
 
 ### Mecanismo cantilever
 
-- **Dos brazos ranurados por hueco**, uno a cada lado, alternando delante, centro y detrás para que no choquen al plegar.
+- **Cuatro brazos ranurados por hueco**, dos a cada lado, en las posiciones delantera y trasera. Los huecos alternan dos carriles laterales para que los brazos no choquen al plegar.
 - **Pasadores impresos** que quedan montados en las bandejas y deslizan por la ranura del brazo.
 - **Abierto:** cada bandeja avanza `cantileverStep` respecto a la anterior.
 - **Plegado:** los brazos quedan verticales y las bandejas se apilan con una separación mínima de seguridad.
 - **Sin desmontar:** el mecanismo no se separa para plegar o transportar.
 - **Caja de transporte cerrada** que cubre la pila plegada y los brazos.
+- **Default compacto:** base 170 × 140 mm, abierto 170 × 190 × 125 mm, caja 179 × 140 × 111 mm.
 
 ### Sistemas de partida
 

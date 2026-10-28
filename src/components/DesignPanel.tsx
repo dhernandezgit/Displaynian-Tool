@@ -35,13 +35,13 @@ export default function DesignPanel({
         depth: 120,
         shelfDepth: 95,
         levelSpacing: 45,
-        levels: 2,
-        lipHeight: 22,
-        cantileverStep: 20,
-        cantileverClosedGap: 28,
+        levels: 3,
+        lipHeight: 18,
+        cantileverStep: 24,
+        cantileverClosedGap: 22,
         backPanel: "none",
         hooks: 0,
-        ...fitPanel(printer, 150, 2, 45),
+        ...fitPanel(printer, 150, 3, 45),
       };
     }
     return { printer: printer.id, bedWidth: printer.width, bedDepth: printer.depth, bedHeight: printer.height, ...fitPanel(printer) };
@@ -100,7 +100,7 @@ export default function DesignPanel({
           <button type="button" className="chip-button" onClick={() => onPatch({ levels: 4 })}>4 bandejas</button>
           <button type="button" className="chip-button" onClick={() => onPatch({ levels: 5 })}>5 bandejas</button>
         </div>
-        <p className="panel-note">Wide 340 necesita una cama grande; el formato 170 × 150 cabe en A1 y A1 Mini. Los brazos crecen con la separación entre niveles.</p>
+        <p className="panel-note">Wide 340 necesita una cama grande; el formato 170 × 140 cabe en A1 y A1 Mini. Los brazos crecen con la separación entre niveles.</p>
       </Section>
 
       <Section title="Panel trasero" subtitle="SKÅDIS, panal, marca o liso" icon={<PanelTop size={15} />} defaultOpen>
@@ -132,7 +132,7 @@ export default function DesignPanel({
         <NumberField label="Grosor de base" value={settings.baseHeight} min={2} max={10} step={0.5} onChange={(value) => onPatch({ baseHeight: value })} />
         <NumberField label="Grosor de bandeja" value={settings.shelfThickness} min={1.6} max={5} step={0.2} onChange={(value) => onPatch({ shelfThickness: value })} />
         <Toggle label="Pies" checked={settings.feet} onChange={(value) => onPatch({ feet: value })} />
-        <p className="panel-note">Dos brazos por hueco, alternando delante, centro y detrás para que no choquen al plegar. Los pasadores quedan montados.</p>
+        <p className="panel-note">Cuatro brazos por hueco, delantero y trasero a cada lado. Los huecos alternan carril exterior/interior para que no choquen al plegar. Los pasadores quedan montados.</p>
       </Section>
 
       <Section title="Perfil de impresora" subtitle="Para avisos de cama" icon={<Settings2 size={15} />}>

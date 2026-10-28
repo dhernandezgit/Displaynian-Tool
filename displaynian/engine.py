@@ -1354,7 +1354,7 @@ def _bom(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[str
             {
                 "name": "Brazos cantilever",
                 "quantity": links,
-                "detail": f"Ranura Ø{settings['pinDiameter']:.1f} · {settings['sideThickness']:.1f} mm",
+                "detail": f"4 por hueco · Ø{settings['pinDiameter']:.1f} · {settings['sideThickness']:.1f} mm",
             }
         )
     if pins:
@@ -1447,7 +1447,7 @@ def _checks(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[
         else:
             add("warn", "Faltan bandejas", "Activa los niveles para completar el cantilever.", "cantilever")
         if len(levels) > 1:
-            expected_links = (len(levels) - 1) * 2
+            expected_links = (len(levels) - 1) * 4
             links = sum(1 for part in parts if part["id"].startswith("link-"))
             pins = sum(1 for part in parts if part["id"].startswith("pin-"))
             if links < expected_links:
@@ -1456,6 +1456,43 @@ def _checks(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[
                 add("ok", "Brazos y pasadores", f"{links} brazos ranurados y {pins} pasadores; el mecanismo queda montado.", "links")
         else:
             add("info", "Un solo nivel", "Añade un segundo nivel para activar el mecanismo cantilever.", "links")
+        link_parts = [part for part in parts if part["id"].startswith("link-")]
+        pin_parts = [part for part in parts if part["id"].startswith("pin-")]
+        boxes = {
+            part["id"]: _matrix_bounds(part, "fold_matrix")
+            for part in link_parts + pin_parts
+        }
+        collisions: list[str] = []
+        for index, first in enumerate(link_parts):
+            first_low, first_high = boxes[first["id"]]
+            for second in link_parts[index + 1:]:
+                second_low, second_high = boxes[second["id"]]
+                if all(
+                    min(first_high[axis], second_high[axis]) - max(first_low[axis], second_low[axis]) > 0.2
+                    for axis in range(3)
+                ):
+                    collisions.append(f"{first['id']} / {second['id']}")
+        for pin in pin_parts:
+            pin_low, pin_high = boxes[pin["id"]]
+            pin_gap = pin["id"].split("-")[1]
+            for link in link_parts:
+                if link["id"].split("-")[1] == pin_gap:
+                    continue
+                link_low, link_high = boxes[link["id"]]
+                if all(
+                    min(pin_high[axis], link_high[axis]) - max(pin_low[axis], link_low[axis]) > 0.2
+                    for axis in range(3)
+                ):
+                    collisions.append(f"{pin['id']} / {link['id']}")
+        if collisions:
+            add(
+                "warn",
+                "Choque al plegar",
+                f"{len(collisions)} cruce(s) entre brazos o pasadores. Reduce el paso, la separación o el número de niveles.",
+                "clearance",
+            )
+        else:
+            add("ok", "Mecanismo sin choques", "Brazos y pasadores quedan libres en la posición plegada.", "clearance")
         minimum_closed = settings["lipHeight"] + settings["shelfThickness"] + 1.5
         if settings["cantileverClosedGap"] < minimum_closed:
             add(
@@ -1485,13 +1522,26 @@ def _checks(settings: dict[str, Any], parts: list[dict[str, Any]]) -> list[dict[
             add("warn", "Pasador fino", "Un pasador de menos de 3,5 mm puede romperse al plegar. Sube el diámetro.", "pin")
         if len(levels) >= 4:
             dz_pin = settings["lipHeight"] * 0.48
-            longest = max(
-                math.hypot(settings["cantileverStep"], max(24.0, level.get("gap", settings["levelSpacing"])) + dz_pin)
-                for level in levels[1:]
-            )
-            lane_cycle = 3.0 * max(settings["cantileverClosedGap"], minimum_closed)
-            if longest + 14.0 > lane_cycle:
-                add("warn", "Brazos largos al plegar", "Los brazos de niveles alternos pueden tocarse. Reduce la separación abierta o usa menos niveles.", "link-clearance")
+            effective_closed = max(settings["cantileverClosedGap"], minimum_closed)
+            for _ in range(2):
+                longest = max(
+                    max(
+                        math.hypot(
+                            settings["cantileverStep"],
+                            max(24.0, level.get("gap", settings["levelSpacing"])) + dz_pin,
+                        )
+                        for level in levels[1:]
+                    ),
+                    effective_closed + dz_pin,
+                )
+                effective_closed = max(effective_closed, (longest + 11.0) / 2.0)
+            if effective_closed > settings["cantileverClosedGap"] + 0.05:
+                add(
+                    "info",
+                    "Plegado ajustado por los brazos",
+                    f"La separación plegada se amplía a {effective_closed:.0f} mm para que los brazos de carriles alternos no choquen.",
+                    "link-clearance",
+                )
         if any(level.get("style") == "containers" for level in levels):
             add("ok", "Contenedores individuales", "Las bandejas usan cajas extraíbles en lugar de separadores.", "containers")
         if any(level.get("insert") == "bracelet" for level in levels):
@@ -1592,12 +1642,17 @@ def build(payload: dict[str, Any]) -> dict[str, Any]:
     shell_factor = 0.58 + settings["infill"] / 100.0 * 0.42
     grams = total_volume / 1000.0 * material["density"] * shell_factor
     height = 0.0
+    open_low = [1e9, 1e9, 1e9]
+    open_high = [-1e9, -1e9, -1e9]
     for part in wire:
         if part.get("transport_only"):
             continue
-        _, high = _matrix_bounds(part, "open_matrix")
+        low, high = _matrix_bounds(part, "open_matrix")
         height = max(height, high[2])
-    depth_open = settings["depth"]
+        for index in range(3):
+            open_low[index] = min(open_low[index], low[index])
+            open_high[index] = max(open_high[index], high[index])
+    depth_open = open_high[1] - open_low[1] if open_high[1] > open_low[1] else settings["depth"]
     folded_low = [1e9, 1e9, 1e9]
     folded_high = [-1e9, -1e9, -1e9]
     for part in wire:
@@ -1660,14 +1715,24 @@ def _mesh_from_stl_b64(value: str) -> Mesh:
     return Mesh(vertices, faces).merged()
 
 
+def _assembled_mesh(part: dict[str, Any], matrix_key: str = "open_matrix") -> Mesh:
+    mesh = _mesh_from_stl_b64(part["stl_b64"])
+    matrix = np.asarray(part[matrix_key], dtype=float).reshape(4, 4)
+    if not np.allclose(matrix, np.eye(4)):
+        mesh = mesh.transformed(matrix)
+    return mesh
+
+
 def export_3mf(payload: dict[str, Any]) -> dict[str, Any]:
     result = build(payload)
     parts = result["parts"]
     meshes: list[tuple[str, Mesh, str]] = []
     for part in parts:
-        meshes.append((part["name"], _mesh_from_stl_b64(part["stl_b64"]), part["color"]))
+        if part.get("transport_only") or part.get("fold_hide"):
+            continue
+        meshes.append((part["name"], _assembled_mesh(part), part["color"]))
     data = three_mf_bytes(meshes, "Displaynian")
-    return {"ok": True, "data_b64": base64.b64encode(data).decode("ascii"), "name": "displaynian.3mf"}
+    return {"ok": True, "data_b64": base64.b64encode(data).decode("ascii"), "name": "displaynian-ensamblado.3mf"}
 
 
 def _label_svg(settings: dict[str, Any]) -> str:
@@ -1700,6 +1765,8 @@ def export_obj(payload: dict[str, Any]) -> dict[str, Any]:
     result = build(payload)
     meshes: list[tuple[str, Mesh]] = []
     for part in result["parts"]:
-        meshes.append((part["name"], _mesh_from_stl_b64(part["stl_b64"])))
+        if part.get("transport_only") or part.get("fold_hide"):
+            continue
+        meshes.append((part["name"], _assembled_mesh(part)))
     obj = mesh_to_obj(meshes)
-    return {"ok": True, "data_b64": base64.b64encode(obj).decode("ascii"), "name": "displaynian.obj"}
+    return {"ok": True, "data_b64": base64.b64encode(obj).decode("ascii"), "name": "displaynian-ensamblado.obj"}

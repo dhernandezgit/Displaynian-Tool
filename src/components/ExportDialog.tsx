@@ -37,13 +37,13 @@ export default function ExportDialog({
           {!laser ? (
             <>
               <button type="button" disabled={busy} onClick={() => onExport("3mf")}>
-                <FileBox size={22} /><strong>3MF montado</strong><small>Objetos separados y colores</small><Download size={15} />
+                <FileBox size={22} /><strong>3MF montado</strong><small>Ensamblado, objetos y colores</small><Download size={15} />
               </button>
               <button type="button" disabled={busy} onClick={() => onExport("stlzip")}>
                 <FileArchive size={22} /><strong>STL por pieza</strong><small>ZIP con CSV de piezas</small><Download size={15} />
               </button>
               <button type="button" disabled={busy} onClick={() => onExport("obj")}>
-                <FileCode2 size={22} /><strong>OBJ</strong><small>Todas las piezas juntas</small><Download size={15} />
+                <FileCode2 size={22} /><strong>OBJ</strong><small>Ensamblado para revisar</small><Download size={15} />
               </button>
             </>
           ) : (

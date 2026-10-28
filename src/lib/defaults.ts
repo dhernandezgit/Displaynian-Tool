@@ -7,7 +7,7 @@ export const SYSTEM_CARDS: SystemCard[] = [
     description: "Tres bandejas cantilever con contenedores extraíbles.",
     icon: "KeyRound",
     accent: "#d9694f",
-    defaults: { width: 170, depth: 150, levels: 3, levelSpacing: 50, shelfDepth: 120, lipHeight: 24, trayTilt: 0, cantileverStep: 24, cantileverClosedGap: 30, backPanel: "none", hooks: 0 },
+    defaults: { width: 170, depth: 140, levels: 3, levelSpacing: 50, shelfDepth: 115, lipHeight: 18, trayTilt: 0, cantileverStep: 28, cantileverClosedGap: 24, backPanel: "none", hooks: 0 },
   },
   {
     id: "stickers",
@@ -15,7 +15,7 @@ export const SYSTEM_CARDS: SystemCard[] = [
     description: "Bandejas bajas y amplias para producto plano.",
     icon: "Sticker",
     accent: "#c58a3d",
-    defaults: { width: 180, depth: 140, levels: 3, levelSpacing: 58, shelfDepth: 110, lipHeight: 18, trayTilt: 0, cantileverStep: 26, cantileverClosedGap: 24, backPanel: "none", hooks: 0 },
+    defaults: { width: 180, depth: 140, levels: 3, levelSpacing: 58, shelfDepth: 110, lipHeight: 16, trayTilt: 0, cantileverStep: 26, cantileverClosedGap: 22, backPanel: "none", hooks: 0 },
   },
   {
     id: "jewelry",
@@ -172,10 +172,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   mode: "3d",
   system: "keychain",
   width: 170,
-  depth: 150,
+  depth: 140,
   levels: 3,
   levelSpacing: 50,
-  shelfDepth: 120,
+  shelfDepth: 115,
   shelfTaper: 1,
   addBase: true,
   addRear: true,
@@ -187,14 +187,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
   postDepth: 30,
   panelThickness: 3,
   shelfThickness: 2.4,
-  lipHeight: 24,
+  lipHeight: 18,
   lipThickness: 2.4,
   dividerSpacing: 32,
   dividerThickness: 1.6,
   trayRadius: 3,
   trayTilt: 0,
-  cantileverStep: 24,
-  cantileverClosedGap: 30,
+  cantileverStep: 28,
+  cantileverClosedGap: 24,
   frontLipRatio: 0.72,
   pinDiameter: 4.2,
   lidHeight: 38,
@@ -243,7 +243,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   awning: false,
   accessoryTray: false,
   insert: "none",
-  levelConfigs: makeLevels(3, 50, 120, 1, 24).map((level, index) => ({
+  levelConfigs: makeLevels(3, 50, 115, 1, 18).map((level, index) => ({
     ...level,
     style: "containers",
     containers: index === 2 ? 1 : 2,
@@ -323,9 +323,9 @@ export function normalizeSettings(raw: Partial<AppSettings> | null | undefined):
         id: level.id || `level-${index + 1}`,
         name: level.name || `Nivel ${index + 1}`,
       }))
-    : makeLevels(levels, Number(source.levelSpacing) || 50, Number(source.shelfDepth) || 120, Number(source.shelfTaper) || 1, Number(source.lipHeight) || 24);
+    : makeLevels(levels, Number(source.levelSpacing) || 50, Number(source.shelfDepth) || 115, Number(source.shelfTaper) || 1, Number(source.lipHeight) || 18);
   while (levelConfigs.length < levels) {
-    levelConfigs.push({ ...makeLevels(levels, Number(source.levelSpacing) || 50, Number(source.shelfDepth) || 120, Number(source.shelfTaper) || 1, Number(source.lipHeight) || 24)[levelConfigs.length] });
+    levelConfigs.push({ ...makeLevels(levels, Number(source.levelSpacing) || 50, Number(source.shelfDepth) || 115, Number(source.shelfTaper) || 1, Number(source.lipHeight) || 18)[levelConfigs.length] });
   }
   return {
     ...source,
