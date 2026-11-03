@@ -73,6 +73,12 @@ async function handle(data: Record<string, any>) {
     } else if (data.type === "exportLaserZip") {
       const result = await call("export_laser_zip", data.payload);
       send({ type: "result", id: data.id, data: result });
+    } else if (data.type === "exportStand3mf") {
+      const result = await call("export_stand_3mf", data.payload);
+      send({ type: "result", id: data.id, data: result });
+    } else if (data.type === "exportStandObj") {
+      const result = await call("export_stand_obj", data.payload);
+      send({ type: "result", id: data.id, data: result });
     }
   } catch (error) {
     const message = String((error as { message?: string })?.message || error);

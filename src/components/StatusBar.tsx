@@ -5,11 +5,15 @@ export default function StatusBar({
   build,
   progress,
   message,
+  standMode = false,
+  standInfo,
 }: {
   ready: boolean;
   build: BuildResult | null;
   progress: string;
   message: string;
+  standMode?: boolean;
+  standInfo?: { modules: number; footprint: string; material: number; height: number; pieces: number };
 }) {
   return (
     <footer className="statusbar">
@@ -17,6 +21,15 @@ export default function StatusBar({
       <span>{ready ? "Motor Python listo" : progress}</span>
       {message ? <span className="status-message">{message}</span> : null}
       <span className="status-spacer" />
+      {standMode && standInfo ? (
+        <>
+          <span>{standInfo.modules} módulos</span>
+          <span>{standInfo.footprint}</span>
+          <span>{(standInfo.height / 10).toFixed(0)} cm alto</span>
+          <span>{standInfo.pieces} piezas</span>
+          <span>{standInfo.material >= 1000 ? `${(standInfo.material / 1000).toFixed(2)} kg` : `${standInfo.material.toFixed(0)} g`}</span>
+        </>
+      ) : null}
       {build ? (
         <>
           {build.laser ? (
@@ -36,7 +49,7 @@ export default function StatusBar({
           <span>{build.build_ms.toFixed(0)} ms</span>
         </>
       ) : null}
-      <span>v{build?.version || "0.1.0"}</span>
+      <span>v{build?.version || "0.8.0"}</span>
     </footer>
   );
 }

@@ -1,3 +1,28 @@
+## 0.8.0 — 2026-11-03
+
+Planificador de stand y merch decorativo.
+
+### Stand
+
+- Nuevo espacio de trabajo **Stand** para colocar varios expositores sobre una rejilla de 30 cm (20–60 cm configurable).
+- Plantillas de escaparate, dúo, pared, rincón, isla y mercado.
+- Añadir, mover arrastrando, girar, duplicar, ocultar y borrar módulos; la rejilla crece si se llena.
+- Undo/redo, atajos de teclado, autoguardado y guardado del stand en el proyecto.
+- Cada módulo conserva todas las opciones del expositor (sistema, medidas, niveles, insertos, colores y material).
+- Comprobaciones de huella, solapes y módulos fuera de la rejilla.
+- Etiquetas de módulo y vistas isométrica, frontal y superior.
+
+### Merch y exportación
+
+- Merch decorativo por sistema e inserto (llaveros, tarjetas, joyas, posavasos, marcapáginas y bolígrafos) con densidad configurable.
+- Exportación de stand en 3MF y OBJ ensamblados, plan CSV y mockup PNG.
+- 3MF con materiales de color por objeto, también en el expositor individual.
+
+### Calidad
+
+- 35 tests, typecheck y build.
+- Guardado local del stand y del espacio de trabajo.
+
 ## 0.7.0 — 2026-10-28
 
 Rediseño del mecanismo cantilever y del paquete de transporte.
@@ -56,6 +81,31 @@ Cambio a expositor cantilever real, plegable sin desmontar.
 - Comprobaciones de recorrido, choques, pasadores, cama y estabilidad.
 
 # Changelog
+
+## 0.8.0 — 2026-11-03
+
+Planificador de stand y merch decorativo.
+
+### Stand
+
+- Nuevo espacio de trabajo **Stand** para colocar varios expositores sobre una rejilla de 30 cm (20–60 cm configurable).
+- Plantillas de escaparate, dúo, pared, rincón, isla y mercado.
+- Añadir, mover arrastrando, girar, duplicar, ocultar y borrar módulos; la rejilla crece si se llena.
+- Undo/redo, atajos de teclado, autoguardado y guardado del stand en el proyecto.
+- Cada módulo conserva todas las opciones del expositor (sistema, medidas, niveles, insertos, colores y material).
+- Comprobaciones de huella, solapes y módulos fuera de la rejilla.
+- Etiquetas de módulo y vistas isométrica, frontal y superior.
+
+### Merch y exportación
+
+- Merch decorativo por sistema e inserto (llaveros, tarjetas, joyas, posavasos, marcapáginas y bolígrafos) con densidad configurable.
+- Exportación de stand en 3MF y OBJ ensamblados, plan CSV y mockup PNG.
+- 3MF con materiales de color por objeto, también en el expositor individual.
+
+### Calidad
+
+- 35 tests, typecheck y build.
+- Guardado local del stand y del espacio de trabajo.
 
 ## 0.5.0 — 2026-10-27
 

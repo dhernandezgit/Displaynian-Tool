@@ -135,6 +135,8 @@ export function usePythonEngine() {
   const exportStlZip = useCallback(async (settings: AppSettings) => request("exportStlZip", { settings }), [request]);
   const exportObj = useCallback(async (settings: AppSettings) => request("exportObj", { settings }), [request]);
   const exportLaserZip = useCallback(async (settings: AppSettings) => request("exportLaserZip", { settings }), [request]);
+  const exportStand3mf = useCallback(async (payload: unknown) => request("exportStand3mf", payload), [request]);
+  const exportStandObj = useCallback(async (payload: unknown) => request("exportStandObj", payload), [request]);
 
   return {
     status,
@@ -148,5 +150,7 @@ export function usePythonEngine() {
     exportStlZip,
     exportObj,
     exportLaserZip,
+    exportStand3mf,
+    exportStandObj,
   };
 }

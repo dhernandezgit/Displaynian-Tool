@@ -85,6 +85,24 @@ def export_obj(payload: str) -> str:
         return _json({"ok": False, "error": str(error)})
 
 
+def export_stand_3mf(payload: str) -> str:
+    try:
+        from . import stand
+
+        return _json(stand.export_stand_3mf(json.loads(payload)))
+    except Exception as error:
+        return _json({"ok": False, "error": str(error)})
+
+
+def export_stand_obj(payload: str) -> str:
+    try:
+        from . import stand
+
+        return _json(stand.export_stand_obj(json.loads(payload)))
+    except Exception as error:
+        return _json({"ok": False, "error": str(error)})
+
+
 def export_laser_zip(payload: str) -> str:
     try:
         data = json.loads(payload)

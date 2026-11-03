@@ -14,6 +14,9 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
           <p>Llaveros, pegatinas, joyería, posavasos, marcapáginas, bolígrafos o mixto. Después ajusta ancho, fondo, niveles, paso cantilever y panel. Todo es opcional: puedes desactivar cualquier pieza desde el catálogo o desde la lista de piezas.</p>
           <h3>2. Personaliza por partes</h3>
           <p>Cada bandeja tiene su separación y su contenido: contenedores individuales, separadores, insertos o bandeja vacía. Haz clic en una pieza del visor para cambiar color, escala o visibilidad.</p>
+          <h3>Stand: monta tu puesto</h3>
+          <p>Cambia a <b>Stand</b> en la barra superior para colocar varios expositores sobre una rejilla de 30 cm. Elige una plantilla, añade módulos y arrástralos por el visor; se ajustan a la celda. Cada módulo conserva todas sus opciones: puedes editarlo en <b>Diseño</b>, <b>Catálogo</b> y <b>Fabricar</b>.</p>
+          <p>Activa el <b>merch decorativo</b> para llenar las bandejas y cambia la densidad en Escena. Rota el módulo con <b>R</b>, duplica con <b>Ctrl+D</b>, borra con <b>Supr</b> y deshaz con <b>Ctrl+Z</b>. Exporta el stand en 3MF/OBJ, CSV o mockup PNG.</p>
           <h3>3. Comprueba el montaje</h3>
           <p><b>Montado</b>: bandejas escalonadas unidas por brazos ranurados y pasadores. <b>Plegado</b>: brazos en vertical y bandejas apiladas. <b>Transporte</b>: caja cerrada con asa. <b>Despiece</b>: piezas separadas.</p>
           <p>Este sistema es un <b>cantilever</b> real: cuatro brazos ranurados por hueco (delantero y trasero a cada lado) unen cada bandeja con pasadores; los huecos alternan dos carriles laterales para no chocar al plegar. El mecanismo queda montado; no hay que desmontarlo para plegarlo.</p>

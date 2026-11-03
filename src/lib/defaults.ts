@@ -1,5 +1,7 @@
 import type { AppSettings, CatalogItem, LevelConfig, SystemCard } from "../types";
 
+export const APP_VERSION = "0.8.0";
+
 export const SYSTEM_CARDS: SystemCard[] = [
   {
     id: "keychain",
@@ -311,6 +313,55 @@ export function applySystem(settings: AppSettings, system: string): AppSettings 
     levelConfigs,
     insert: "none",
   };
+}
+
+export function applySystemPreserving(current: AppSettings, system: string): AppSettings {
+  const next = applySystem(current, system);
+  return {
+    ...next,
+    mode: current.mode,
+    printer: current.printer,
+    bedWidth: current.bedWidth,
+    bedDepth: current.bedDepth,
+    bedHeight: current.bedHeight,
+    material: current.material,
+    laserMaterial: current.laserMaterial,
+    laserThickness: current.laserThickness,
+    kerf: current.kerf,
+    sheet: current.sheet,
+    sheetWidth: current.sheetWidth,
+    sheetHeight: current.sheetHeight,
+    partColors: current.partColors,
+    partScales: current.partScales,
+    disabledParts: current.disabledParts,
+    colors: current.colors,
+  };
+}
+
+export function patchSettings(current: AppSettings, patch: Partial<AppSettings>): AppSettings {
+  const next = { ...current, ...patch };
+  if (patch.levels !== undefined) {
+    const count = Math.max(1, Math.min(6, Math.round(Number(patch.levels) || 1)));
+    const existing = current.levelConfigs;
+    const base = makeLevels(count, current.levelSpacing, current.shelfDepth, current.shelfTaper, current.lipHeight);
+    next.levels = count;
+    next.levelConfigs = base.map((level, index) => ({
+      ...level,
+      ...(existing[index] || {}),
+      height: existing[index]?.height ?? level.height,
+      depth: Math.min(existing[index]?.depth ?? level.depth, next.depth - 8),
+    }));
+  }
+  if (patch.depth !== undefined) {
+    next.levelConfigs = next.levelConfigs.map((level) => ({ ...level, depth: Math.min(level.depth, next.depth - 8) }));
+  }
+  if (patch.levelSpacing !== undefined) {
+    next.levelConfigs = next.levelConfigs.map((level) => ({ ...level, gap: patch.levelSpacing as number }));
+  }
+  if (patch.mode === "laser") {
+    next.laserThickness = current.laserThickness || 3;
+  }
+  return next;
 }
 
 export function normalizeSettings(raw: Partial<AppSettings> | null | undefined): AppSettings {

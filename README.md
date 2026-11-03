@@ -1,13 +1,13 @@
 # Displaynian
 
-**Versión 0.7.0** · Expositor cantilever modular para ferias, mercados y tiendas.
+**Versión 0.8.0** · Expositor cantilever modular y planificador de stand para ferias, mercados y tiendas.
 
 Displaynian genera un expositor **cantilever plegable** a partir de parámetros. El motor de geometría está escrito en **Python** y se ejecuta en el navegador con **Pyodide/WebAssembly**; el frontend usa **React + Three.js**. No hay servidor, no se suben archivos y no hace falta cuenta.
 
 - **Web:** `https://dhernandezgit.github.io/Displaynian-Tool/web/`
 - **Repo:** `https://github.com/dhernandezgit/Displaynian-Tool`
-- **Modos:** impresión 3D FDM y corte láser.
-- **Salidas:** STL por pieza, 3MF/OBJ ensamblados, SVG, DXF, ZIP láser, BOM CSV, proyecto `.displaynian.json` y mockup PNG.
+- **Modos:** impresión 3D FDM, corte láser y planificador de stand.
+- **Salidas:** STL por pieza, 3MF/OBJ ensamblados, SVG, DXF, ZIP láser, BOM CSV, proyecto `.displaynian.json` y mockup PNG. En modo stand, además 3MF/OBJ del conjunto y plan CSV.
 
 ## Qué hace
 
@@ -34,6 +34,17 @@ Cada tarjeta cambia de verdad la geometría, no solo el color:
 - **Marcapáginas:** bandejas con cuatro divisores.
 - **Bolígrafos:** inserto de seis huecos.
 - **Sistema mixto:** contenedores, divisores y raíles de tarjetas.
+
+### Planificador de stand
+
+- **Modo Stand** independiente del editor de una pieza: coloca varios expositores sobre una rejilla de 30 cm (20–60 cm configurable).
+- **Plantillas** de escaparate, dúo, pared, rincón, isla y mercado; sustituyen la escena en un clic y se pueden deshacer.
+- **Mover, girar, duplicar, ocultar y borrar** módulos; arrastra sobre el visor y el módulo se ajusta a la celda.
+- **Undo/redo** para las operaciones de la escena, autoguardado y teclas rápidas (`R`, `Supr`, `Ctrl+D`, `Ctrl+Z`).
+- **Cada módulo conserva todas las opciones** del expositor: sistema, medidas, niveles, insertos, colores, piezas y material.
+- **Merch decorativo** según el sistema y el inserto: llaveros, tarjetas, joyas, posavasos, marcapáginas o bolígrafos, con densidad configurable.
+- **Comprobaciones de stand**: huella, módulos fuera de la rejilla, solapes y material total.
+- **Exportación**: 3MF/OBJ del stand montado, CSV de módulos y mockup PNG con el merch.
 
 ### Estructura
 
@@ -98,12 +109,14 @@ displaynian/
   cantilever.py   base, bandejas, brazos ranurados, pasadores, panel y caja
   foldable.py     helpers de bandejas, contenedores, paneles y ganchos
   engine.py       checks, BOM y exportadores
+  stand.py        ensamblado y exportación del stand
   laser.py        paneles 2D, cupones, nesting, SVG y DXF
   webapi.py       puente JSON para Pyodide
 src/
   App.tsx         estado, modos, vistas y exportación
-  components/     visor, paneles, inspector y diálogos
-  hooks/          motor Python en Web Worker
+  components/     visor, paneles, inspector de stand y diálogos
+  hooks/          motor Python en Web Worker y cola de builds del stand
+  lib/            presets, geometría auxiliar del stand y merch
   workers/        carga de Pyodide y del paquete Python
 tests/            pruebas de geometría, cinemática, exportadores y parámetros
 ```

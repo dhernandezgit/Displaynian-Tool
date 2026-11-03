@@ -442,20 +442,32 @@ def three_mf_bytes(parts: list[tuple[str, Mesh, str]], title: str, units: str = 
 <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
 <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>
 </Types>""")
-        resources: list[str] = []
+        colors: list[str] = []
+        color_indices: dict[str, int] = {}
+        for _, mesh, color in parts:
+            if mesh.empty:
+                continue
+            hex_color = color.lower().lstrip("#")
+            if len(hex_color) != 6:
+                hex_color = "666666"
+            normalized = f"#{hex_color}"
+            if normalized not in color_indices:
+                color_indices[normalized] = len(colors)
+                colors.append(normalized)
+        materials = "".join(
+            f'<base name="Color {index}" displaycolor="{color}"/>'
+            for index, color in enumerate(colors or ["#666666"])
+        )
+        resources: list[str] = [f'<basematerials id="1">{materials}</basematerials>']
         objects: list[str] = []
         for index, (name, mesh, color) in enumerate(parts):
             if mesh.empty:
                 continue
             resource_id = index + 1
-            hex_color = color.lstrip("#")
+            hex_color = color.lower().lstrip("#")
             if len(hex_color) != 6:
                 hex_color = "666666"
-            resources.append(
-                f'<basematerials id="1"><base name="Displaynian" displaycolor="#{hex_color}"/></basematerials>'
-                if index == 0
-                else ""
-            )
+            color_index = color_indices.get(f"#{hex_color}", 0)
             vertex_xml = "".join(
                 f'<vertex x="{v[0]:.6f}" y="{v[1]:.6f}" z="{v[2]:.6f}"/>'
                 for v in mesh.vertices
@@ -465,7 +477,8 @@ def three_mf_bytes(parts: list[tuple[str, Mesh, str]], title: str, units: str = 
                 for f in mesh.faces
             )
             resources.append(
-                f'<object id="{resource_id + 100}" type="model"><mesh><vertices>{vertex_xml}</vertices>'
+                f'<object id="{resource_id + 100}" type="model" pid="1" pindex="{color_index}">'
+                f'<mesh><vertices>{vertex_xml}</vertices>'
                 f'<triangles>{triangle_xml}</triangles></mesh></object>'
             )
             objects.append(

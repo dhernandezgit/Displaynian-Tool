@@ -1,5 +1,7 @@
 export type Mode = "3d" | "laser";
 export type ViewMode = "open" | "fold" | "transport" | "exploded";
+export type Workspace = "display" | "stand";
+export type StandRotation = 0 | 90 | 180 | 270;
 
 export interface LevelConfig {
   id: string;
@@ -244,4 +246,46 @@ export interface CatalogItem {
   min?: number;
   max?: number;
   icon: string;
+}
+
+export interface StandUnit {
+  id: string;
+  name: string;
+  system: string;
+  settings: AppSettings;
+  cellX: number;
+  cellZ: number;
+  rotation: StandRotation;
+  merch: boolean;
+  hidden: boolean;
+}
+
+export interface StandPlan {
+  version: number;
+  grid: number;
+  cols: number;
+  rows: number;
+  units: StandUnit[];
+  selectedId: string | null;
+  showGrid: boolean;
+  showMerch: boolean;
+  showLabels: boolean;
+  merchLevel: number;
+}
+
+export interface StandTemplate {
+  id: string;
+  label: string;
+  description: string;
+  icon: string;
+  grid: number;
+  cols: number;
+  rows: number;
+  units: { system: string; cellX: number; cellZ: number; rotation?: StandRotation }[];
+}
+
+export interface StandCheck {
+  level: "ok" | "info" | "warn";
+  title: string;
+  detail: string;
 }

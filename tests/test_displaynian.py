@@ -345,3 +345,65 @@ def test_mechanism_clearance_and_adaptive_fold():
     deep = engine.build({"settings": _settings(levels=4)})
     assert any(check["code"] == "link-clearance" for check in deep["checks"])
     assert any(check["code"] == "clearance" and check["level"] == "ok" for check in deep["checks"])
+
+
+def _stand_payload():
+    base = {
+        "system": "keychain",
+        "levels": 2,
+        "width": 150,
+        "depth": 120,
+        "shelfDepth": 95,
+        "levelSpacing": 45,
+        "backPanel": "none",
+        "hooks": 0,
+        "transport": False,
+    }
+    return {
+        "grid": 300,
+        "units": [
+            {"id": "a", "name": "Modulo A", "settings": {**base}, "cellX": 0, "cellZ": 0, "rotation": 0},
+            {"id": "b", "name": "Modulo B", "settings": {**base, "system": "stickers"}, "cellX": 1, "cellZ": 0, "rotation": 90},
+            {"id": "c", "name": "Modulo oculto", "settings": {**base}, "cellX": 2, "cellZ": 0, "rotation": 0, "hidden": True},
+        ],
+    }
+
+
+def test_stand_export_3mf_and_obj_include_visible_units():
+    from displaynian import stand
+
+    result = stand.export_stand_3mf(_stand_payload())
+    assert result["ok"]
+    data = base64.b64decode(result["data_b64"])
+    with zipfile.ZipFile(io.BytesIO(data)) as archive:
+        model = archive.read("3D/3dmodel.model").decode("utf-8")
+    assert "<basematerials" in model
+    assert 'pindex="' in model
+    assert model.count("<object ") >= 4
+    assert "Modulo oculto" not in model
+
+    obj = stand.export_stand_obj(_stand_payload())
+    assert obj["ok"]
+    text = base64.b64decode(obj["data_b64"]).decode("utf-8")
+    assert "o Modulo_A" in text
+    assert "o Modulo_B" in text
+    assert "Modulo_oculto" not in text
+    assert text.count("v ") > 100
+
+
+def test_stand_export_rejects_empty_stand():
+    from displaynian import stand
+
+    result = stand.export_stand_3mf({"grid": 300, "units": []})
+    assert not result["ok"]
+    assert result["error"]
+
+
+def test_3mf_export_references_each_part_color():
+    result = engine.export_3mf({"settings": _settings()})
+    assert result["ok"]
+    with zipfile.ZipFile(io.BytesIO(base64.b64decode(result["data_b64"]))) as archive:
+        model = archive.read("3D/3dmodel.model").decode("utf-8")
+    assert "<basematerials" in model
+    assert model.count("<base ") >= 2
+    assert 'pindex="' in model
